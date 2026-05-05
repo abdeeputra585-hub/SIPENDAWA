@@ -1,691 +1,326 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MakanYuk — Pesan Makanan & Minuman</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --brand:       #16A97C;
-  --brand-dark:  #0D7A58;
-  --brand-deep:  #083D2C;
-  --brand-light: #EDFAF4;
-  --brand-mid:   #7DE0BE;
-  --accent:      #FF6B35;
-  --accent-soft: #FFF0EA;
-  --accent2:     #7C3AED;
-  --accent2-soft:#F3EFFE;
-  --yellow:      #F59E0B;
-  --yellow-soft: #FFFBEB;
-  --text:        #111827;
-  --text2:       #374151;
-  --muted:       #6B7280;
-  --border:      #E5E7EB;
-  --bg:          #F8FAF9;
-  --white:       #FFFFFF;
-  --r:12px; --r-lg:20px; --r-xl:28px;
-  --font-h:'Bricolage Grotesque',sans-serif;
-  --font-b:'Plus Jakarta Sans',sans-serif;
-}
-body{font-family:var(--font-b);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
-a{text-decoration:none;color:inherit}
-button{cursor:pointer;font-family:var(--font-b)}
-
-/* ── NAV ── */
-.nav{
-  position:sticky;top:0;z-index:100;
-  height:68px;
-  background:rgba(255,255,255,0.88);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(229,231,235,0.7);
-  display:flex;align-items:center;
-  padding:0 2.5rem;gap:2rem;
-}
-.nav-logo{
-  font-family:var(--font-h);font-size:1.5rem;font-weight:800;
-  color:var(--brand-deep);white-space:nowrap;
-}
-.nav-logo em{color:var(--brand);font-style:normal}
-.nav-links{display:flex;gap:1.75rem;list-style:none;flex:1;padding-left:1.5rem}
-.nav-links a{font-size:0.875rem;font-weight:600;color:var(--muted);transition:color .2s}
-.nav-links a:hover,.nav-links a.active{color:var(--brand)}
-.nav-right{display:flex;align-items:center;gap:.75rem;margin-left:auto}
-.nav-cart{
-  position:relative;
-  background:var(--brand-light);border:1.5px solid #b8f0da;
-  border-radius:var(--r);padding:.5rem 1rem;
-  display:flex;align-items:center;gap:.45rem;
-  font-size:.85rem;font-weight:700;color:var(--brand-dark);
-  transition:background .2s;
-}
-.nav-cart:hover{background:#d5f5eb}
-.nav-badge{
-  position:absolute;top:-7px;right:-7px;
-  width:20px;height:20px;border-radius:50%;
-  background:var(--accent);color:#fff;
-  font-size:10px;font-weight:800;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid #fff;
-}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border:none;border-radius:var(--r);font-family:var(--font-b);font-weight:700;cursor:pointer;transition:all .2s}
-.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border);padding:.5rem 1.1rem;font-size:.85rem}
-.btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
-.btn-brand{background:var(--brand);color:#fff;padding:.55rem 1.25rem;font-size:.875rem}
-.btn-brand:hover{background:var(--brand-dark);transform:translateY(-1px)}
-
-/* ── HERO ── */
-.hero{
-  background: linear-gradient(135deg, #083D2C 0%, #0D5C40 45%, #0F7A55 100%);
-  padding:5rem 2.5rem 0;
-  overflow:hidden;position:relative;
-}
-.hero-bg-dot{
-  position:absolute;width:500px;height:500px;border-radius:50%;
-  background:radial-gradient(circle,rgba(22,169,124,.25),transparent 70%);
-  top:-100px;right:-100px;pointer-events:none;
-}
-.hero-bg-dot2{
-  position:absolute;width:300px;height:300px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,107,53,.15),transparent 70%);
-  bottom:40px;left:5%;pointer-events:none;
-}
-.hero-inner{
-  max-width:1160px;margin:0 auto;
-  display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:end;
-}
-.hero-left{padding-bottom:4rem}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:.5rem;
-  background:rgba(125,224,190,.15);
-  border:1px solid rgba(125,224,190,.35);
-  color:var(--brand-mid);
-  padding:.35rem 1rem;border-radius:20px;
-  font-size:.78rem;font-weight:700;letter-spacing:.04em;
-  margin-bottom:1.5rem;text-transform:uppercase;
-}
-.hero h1{
-  font-family:var(--font-h);
-  font-size:clamp(2.2rem,4.5vw,3.4rem);
-  font-weight:800;color:#fff;
-  line-height:1.15;margin-bottom:1.2rem;
-}
-.hero h1 .hl{
-  color:transparent;
-  background:linear-gradient(90deg,#7DE0BE,#16A97C);
-  -webkit-background-clip:text;background-clip:text;
-}
-.hero-desc{color:rgba(167,196,181,.9);font-size:1.05rem;line-height:1.7;margin-bottom:2rem;max-width:460px}
-.hero-search{
-  display:flex;align-items:center;gap:.5rem;
-  background:#fff;border-radius:var(--r-lg);
-  padding:.45rem .45rem .45rem 1.25rem;
-  max-width:480px;
-  box-shadow:0 8px 32px rgba(0,0,0,.2);
-}
-.hero-search input{flex:1;border:none;outline:none;font-size:.95rem;font-family:var(--font-b);color:var(--text)}
-.hero-search input::placeholder{color:#b0b8c1}
-.hero-search-btn{
-  background:var(--accent);color:#fff;border:none;
-  border-radius:12px;padding:.65rem 1.4rem;
-  font-size:.875rem;font-weight:700;font-family:var(--font-b);cursor:pointer;
-  transition:background .2s;white-space:nowrap;
-}
-.hero-search-btn:hover{background:#e05a28}
-.hero-stats{display:flex;gap:2.5rem;margin-top:2.5rem}
-.h-stat strong{display:block;font-family:var(--font-h);font-size:1.6rem;font-weight:800;color:#fff}
-.h-stat span{font-size:.8rem;color:rgba(167,196,181,.8)}
-
-.hero-right{
-  display:flex;flex-direction:column;gap:1rem;
-  padding-bottom:2rem;
-}
-.hero-card{
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:var(--r-lg);padding:1rem 1.25rem;
-  display:flex;align-items:center;gap:1rem;
-  animation:slideIn .5s ease both;
-}
-.hero-card:nth-child(2){animation-delay:.1s}
-.hero-card:nth-child(3){animation-delay:.2s}
-@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
-.hc-emoji{
-  width:52px;height:52px;border-radius:14px;
-  background:rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.6rem;flex-shrink:0;
-}
-.hc-info{flex:1}
-.hc-name{font-weight:700;color:#fff;font-size:.95rem}
-.hc-meta{font-size:.78rem;color:rgba(167,196,181,.8);margin-top:.15rem}
-.hc-price{font-family:var(--font-h);font-weight:800;color:var(--brand-mid);font-size:1.05rem}
-
-/* ── BAND ── */
-.band{
-  background: linear-gradient(90deg, var(--accent) 0%, #FF8C5A 100%);
-  padding:.9rem 2.5rem;
-}
-.band-inner{
-  max-width:1160px;margin:0 auto;
-  display:flex;justify-content:center;align-items:center;gap:3rem;flex-wrap:wrap;
-}
-.band-item{display:flex;align-items:center;gap:.5rem;color:#fff;font-size:.875rem;font-weight:600}
-.band-item svg{flex-shrink:0}
-
-/* ── SECTION BASE ── */
-.section{padding:4rem 2.5rem}
-.s-inner{max-width:1160px;margin:0 auto}
-.s-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
-.s-title{font-family:var(--font-h);font-size:1.75rem;font-weight:800;color:var(--text)}
-.s-sub{font-size:.9rem;color:var(--muted);margin-top:.25rem}
-.see-all{font-size:.875rem;font-weight:700;color:var(--brand);border:1.5px solid #b8f0da;border-radius:var(--r);padding:.4rem 1rem;background:var(--brand-light);transition:background .2s}
-.see-all:hover{background:#c8f4e2}
-
-/* ── CATEGORY PILLS ── */
-.cats{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem}
-.cat{
-  padding:.5rem 1.25rem;border-radius:20px;
-  font-size:.85rem;font-weight:600;
-  border:1.5px solid var(--border);
-  background:#fff;color:var(--muted);
-  cursor:pointer;transition:all .2s;
-}
-.cat:hover{border-color:var(--brand);color:var(--brand)}
-.cat.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-
-/* ── PRODUCT GRID ── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1.25rem}
-.pcard{
-  background:#fff;border:1px solid var(--border);
-  border-radius:var(--r-lg);overflow:hidden;
-  transition:transform .22s,box-shadow .22s;
-}
-.pcard:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(22,169,124,.13)}
-.pcard-img{
-  height:148px;
-  background:linear-gradient(135deg,#EDFAF4,#d0f5e8);
-  display:flex;align-items:center;justify-content:center;
-  font-size:3.2rem;position:relative;
-}
-.pcard-badge{
-  position:absolute;top:10px;left:10px;
-  padding:.25rem .7rem;border-radius:20px;
-  font-size:.7rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;
-}
-.badge-hot{background:var(--accent);color:#fff}
-.badge-new{background:var(--accent2);color:#fff}
-.badge-pop{background:var(--yellow);color:#fff}
-.pcard-body{padding:1.1rem}
-.pcard-name{font-weight:700;font-size:.95rem;color:var(--text)}
-.pcard-cat{
-  font-size:.75rem;color:var(--muted);
-  margin-top:.2rem;margin-bottom:.85rem;
-  display:flex;align-items:center;gap:.35rem;
-}
-.pcard-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--brand);display:inline-block;
-}
-.pcard-foot{display:flex;align-items:center;justify-content:space-between}
-.pcard-price{font-family:var(--font-h);font-size:1.05rem;font-weight:800;color:var(--text)}
-.pcard-add{
-  width:36px;height:36px;border-radius:50%;
-  background:var(--brand);color:#fff;border:none;
-  font-size:1.4rem;display:flex;align-items:center;justify-content:center;
-  line-height:1;transition:background .2s,transform .15s;
-}
-.pcard-add:hover{background:var(--brand-dark);transform:scale(1.1)}
-
-/* ── PROMO SECTION ── */
-.promos{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;margin-bottom:2.5rem}
-.promo-card{
-  border-radius:var(--r-xl);padding:1.75rem;
-  display:flex;flex-direction:column;gap:.6rem;
-  position:relative;overflow:hidden;
-}
-.promo-card::before{
-  content:'';position:absolute;
-  width:200px;height:200px;border-radius:50%;
-  top:-60px;right:-60px;
-  background:rgba(255,255,255,.12);pointer-events:none;
-}
-.pc-green{background:linear-gradient(135deg,#0D7A58,#16A97C)}
-.pc-orange{background:linear-gradient(135deg,#C84B11,#FF6B35)}
-.pc-purple{background:linear-gradient(135deg,#5B21B6,#7C3AED)}
-.promo-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.75;color:#fff}
-.promo-title{font-family:var(--font-h);font-size:1.3rem;font-weight:800;color:#fff;line-height:1.3}
-.promo-sub{font-size:.85rem;color:rgba(255,255,255,.8)}
-.promo-btn{
-  margin-top:.5rem;align-self:flex-start;
-  background:rgba(255,255,255,.2);color:#fff;
-  border:1.5px solid rgba(255,255,255,.35);
-  border-radius:var(--r);padding:.45rem 1.1rem;
-  font-size:.8rem;font-weight:700;cursor:pointer;
-  transition:background .2s;
-}
-.promo-btn:hover{background:rgba(255,255,255,.32)}
-
-/* ── REVIEW SECTION ── */
-.reviews-bg{background:#fff}
-.rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem}
-.rev-card{
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:var(--r-lg);padding:1.25rem;
-}
-.rev-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
-.rev-avatar{
-  width:42px;height:42px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0;
-}
-.av-g{background:linear-gradient(135deg,#16A97C,#0D7A58)}
-.av-o{background:linear-gradient(135deg,#FF6B35,#C84B11)}
-.av-p{background:linear-gradient(135deg,#7C3AED,#5B21B6)}
-.rev-name{font-weight:700;font-size:.9rem}
-.rev-stars{color:#F59E0B;font-size:.85rem}
-.rev-text{font-size:.875rem;color:var(--text2);line-height:1.65}
-.rev-product{
-  display:inline-flex;align-items:center;gap:.35rem;
-  margin-top:.75rem;
-  background:var(--brand-light);color:var(--brand-dark);
-  padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:700;
-}
-
-/* ── FOOTER ── */
-.footer{
-  background:var(--brand-deep);
-  padding:3rem 2.5rem 1.5rem;
-}
-.footer-inner{max-width:1160px;margin:0 auto}
-.footer-top{
-  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
-  gap:2.5rem;padding-bottom:2.5rem;
-  border-bottom:1px solid rgba(255,255,255,.1);
-}
-.footer-logo{font-family:var(--font-h);font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:.75rem}
-.footer-logo em{color:var(--brand-mid);font-style:normal}
-.footer-desc{font-size:.875rem;color:rgba(167,196,181,.75);line-height:1.7;margin-bottom:1.25rem}
-.footer-socials{display:flex;gap:.6rem}
-.social-btn{
-  width:36px;height:36px;border-radius:var(--r);
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;
-  color:rgba(167,196,181,.8);font-size:.85rem;font-weight:700;
-  transition:background .2s;
-}
-.social-btn:hover{background:rgba(22,169,124,.25);color:var(--brand-mid)}
-.footer-col h4{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--brand-mid);margin-bottom:1rem}
-.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:.6rem}
-.footer-col a{font-size:.875rem;color:rgba(167,196,181,.7);transition:color .2s}
-.footer-col a:hover{color:#fff}
-.footer-bottom{
-  display:flex;justify-content:space-between;align-items:center;
-  padding-top:1.5rem;flex-wrap:wrap;gap:.75rem;
-  font-size:.8rem;color:rgba(167,196,181,.5);
-}
-
-/* ── TOAST ── */
-.toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem}
-.toast{
-  background:var(--brand-dark);color:#fff;
-  padding:.75rem 1.25rem;border-radius:var(--r);
-  font-size:.875rem;font-weight:600;
-  box-shadow:0 8px 24px rgba(0,0,0,.2);
-  animation:fadeUp .3s ease;
-}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .hero-inner{grid-template-columns:1fr}
-  .hero-right{display:none}
-  .footer-top{grid-template-columns:1fr 1fr}
-}
-@media(max-width:600px){
-  .hero{padding:3.5rem 1.5rem 0}
-  .section{padding:3rem 1.5rem}
-  .hero-stats{gap:1.5rem}
-  .footer-top{grid-template-columns:1fr}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGuardian - Sistem Pengelolaan Data Wali Siswa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
-<!-- NAVBAR -->
-<nav class="nav">
-  <span class="nav-logo">Makan<em>Yuk</em></span>
-  <ul class="nav-links">
-    <li><a href="#" class="active">Beranda</a></li>
-    <li><a href="#menu">Menu</a></li>
-    <li><a href="#promo">Promo</a></li>
-    <li><a href="#ulasan">Ulasan</a></li>
-  </ul>
-  <div class="nav-right">
-    <a href="cart.html" class="nav-cart">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
-      </svg>
-      Keranjang
-      <span class="nav-badge" id="cart-badge" style="display:none">0</span>
-    </a>
-    <a href="login.html" class="btn btn-ghost" id="btn-masuk">Masuk</a>
-    <a href="login.html#register" class="btn btn-brand" id="btn-daftar">Daftar Gratis</a>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg-dot"></div>
-  <div class="hero-bg-dot2"></div>
-  <div class="hero-inner">
-    <div class="hero-left">
-      <div class="hero-tag">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        #1 Toko Makanan Online Terpercaya
-      </div>
-      <h1>Pesan <span class="hl">Makanan Lezat</span>,<br>Diantar Cepat ke Rumahmu</h1>
-      <p class="hero-desc">Ratusan pilihan makanan & minuman segar siap memanjakan lidahmu. Pesan sekarang, nikmati dalam 30 menit!</p>
-      <div class="hero-search">
-        <input type="text" placeholder="Cari nasi goreng, boba, cheesecake..." id="search-input">
-        <button class="hero-search-btn" onclick="doSearch()">🔍 Cari Sekarang</button>
-      </div>
-      <div class="hero-stats">
-        <div class="h-stat"><strong>500+</strong><span>Menu tersedia</span></div>
-        <div class="h-stat"><strong>10rb+</strong><span>Pelanggan puas</span></div>
-        <div class="h-stat"><strong>4.9★</strong><span>Rating rata-rata</span></div>
-      </div>
-    </div>
-    <div class="hero-right">
-      <div class="hero-card">
-        <div class="hc-emoji">🍱</div>
-        <div class="hc-info">
-          <div class="hc-name">Nasi Kotak Ayam Spesial</div>
-          <div class="hc-meta">⭐ 4.9 · Terlaris minggu ini</div>
+    <div class="bg-slate-900 text-white px-4 py-2 text-xs flex justify-between items-center z-50 shadow-md border-b border-slate-700 shrink-0">
+        <div class="flex items-center gap-2">
+            <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-3xs">UTS 2026</span>
+            <span class="font-medium text-slate-300">EduGuardian Live Presentation Switcher:</span>
         </div>
-        <div class="hc-price">Rp 25.000</div>
-      </div>
-      <div class="hero-card">
-        <div class="hc-emoji">🧋</div>
-        <div class="hc-info">
-          <div class="hc-name">Boba Taro Susu</div>
-          <div class="hc-meta">⭐ 4.8 · 320 terjual</div>
+        <div class="flex gap-1.5 overflow-x-auto max-w-xl md:max-w-none py-1 custom-scrollbar">
+            <button onclick="showRoute('login')" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-3xs font-semibold tracking-wide">1. Login</button>
+            <button onclick="showRoute('register')" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-3xs font-semibold tracking-wide">2. Register</button>
+            <button onclick="loginAs('admin')" class="bg-blue-900 text-blue-200 hover:bg-blue-800 px-2 py-1 rounded text-3xs font-bold">3. Portal Admin</button>
+            <button onclick="loginAs('parent')" class="bg-purple-900 text-purple-200 hover:bg-purple-800 px-2 py-1 rounded text-3xs font-bold">4. Portal Orang Tua</button>
         </div>
-        <div class="hc-price">Rp 18.000</div>
-      </div>
-      <div class="hero-card">
-        <div class="hc-emoji">🍰</div>
-        <div class="hc-info">
-          <div class="hc-name">Cheesecake Slice Premium</div>
-          <div class="hc-meta">⭐ 5.0 · Menu baru</div>
+    </div>
+
+    <div class="flex-1 flex flex-col relative min-h-0">
+
+        <div id="route-login" class="route-view hidden fixed inset-t-0 w-full h-full bg-white flex flex-col md:flex-row z-40">
+            <div class="hidden md:flex md:w-1/2 text-white p-12 flex-col justify-between relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+                <div class="z-10 flex items-center gap-2 text-lg font-bold"><i class="fa-solid fa-graduation-cap text-blue-400"></i> ADVANCED ACADEMIC ERP</div>
+                <div class="my-auto z-10 max-w-md space-y-4">
+                    <img src="https://i1-c.pinimg.com/736x/41/45/f4/4145f439fbfdeb99a6c2480775728376.jpg" class="rounded-2xl shadow-xl border border-blue-700/50 object-cover h-48 w-full mb-6" alt="Branding">
+                    <h1 class="text-3xl font-extrabold tracking-tight">Efisiensi Administrasi Sekolah</h1>
+                    <p class="text-blue-100/80 font-light text-sm leading-relaxed">Kelola data wali siswa dengan sistem yang terintegrasi, aman, dan mudah diakses untuk meningkatkan kolaborasi antara sekolah dan orang tua.</p>
+                </div>
+                <div class="text-xs text-blue-300 z-10">&copy; 2026 Sistem Pengelolaan Data Wali Siswa. All rights reserved.</div>
+                <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-700 rounded-full mix-blend-multiply filter blur-xl opacity-40"></div>
+            </div>
+            <div class="w-full md:w-1/2 flex items-center justify-center p-8 bg-slate-50">
+                <div class="w-full max-w-md bg-white border border-slate-100 p-8 rounded-3xl shadow-xl space-y-6">
+                    <div class="text-center space-y-1">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl shadow-xs"><i class="fa-solid fa-user-shield"></i></div>
+                        <h2 class="text-xl font-bold text-slate-900">Sistem Pengelolaan Data Wali</h2>
+                        <p class="text-xs text-slate-400">Silakan pilih peran Anda sebagai Administrator atau Orang Tua/Wali untuk masuk ke sistem</p>
+                    </div>
+                    <div class="flex p-1 bg-slate-100 rounded-xl">
+                        <button id="login-toggle-admin" onclick="setLoginRole('admin')" class="w-1/2 py-2 text-xs font-bold rounded-lg transition-all bg-white text-blue-700 shadow-xs">Administrator</button>
+                        <button id="login-toggle-parent" onclick="setLoginRole('parent')" class="w-1/2 py-2 text-xs font-bold rounded-lg transition-all text-slate-500">Orang Tua/Wali</button>
+                    </div>
+                    <form onsubmit="executeLogin(event)" class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Alamat Email</label>
+                            <div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-regular fa-envelope"></i></span><input type="email" id="login-email" required class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all" value="admin@school.id"></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center"><label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Kata Sandi</label><a href="#" class="text-2xs text-blue-600 hover:underline">Lupa Sandi?</a></div>
+                            <div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i class="fa-solid fa-lock"></i></span><input type="password" id="login-password" value="password123" required class="w-full pl-9 pr-10 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"><span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 text-xs cursor-pointer"><i class="fa-regular fa-eye"></i></span></div>
+                        </div>
+                        <div class="flex items-center"><input type="checkbox" id="remember" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"><label for="remember" class="ml-2 text-xs text-slate-500">Ingat saya di perangkat ini</label></div>
+                        <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-blue-700/10 flex items-center justify-center gap-2">Masuk Sekarang <i class="fa-solid fa-arrow-right-to-bracket text-2xs"></i></button>
+                    </form>
+                    <div class="pt-4 border-t border-slate-100 text-center"><p class="text-2xs text-slate-400">Khusus untuk Orang Tua/Wali, belum memiliki akun? <a onclick="showRoute('register')" class="text-blue-600 font-bold hover:underline cursor-pointer">Daftar Akun Orang Tua/Wali &rarr;</a></p></div>
+                </div>
+            </div>
         </div>
-        <div class="hc-price">Rp 20.000</div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- BAND -->
-<div class="band">
-  <div class="band-inner">
-    <div class="band-item">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      Gratis ongkir min. Rp 50rb
-    </div>
-    <div class="band-item">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-      Estimasi 30 menit
-    </div>
-    <div class="band-item">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Pembayaran 100% aman
-    </div>
-    <div class="band-item">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07"/><path d="M1 1l22 22"/></svg>
-      Customer service 24/7
-    </div>
-  </div>
-</div>
-
-<!-- PROMO SECTION -->
-<section class="section" id="promo">
-  <div class="s-inner">
-    <div class="s-head">
-      <div>
-        <div class="s-title">Promo Spesial 🎉</div>
-        <div class="s-sub">Hemat lebih banyak dengan promo hari ini</div>
-      </div>
-    </div>
-    <div class="promos">
-      <div class="promo-card pc-green">
-        <div class="promo-label">Hari ini saja</div>
-        <div class="promo-title">Gratis Ongkir<br>Semua Pesanan</div>
-        <div class="promo-sub">Min. pembelian Rp 50.000<br>Berlaku s/d 23:59 WIB</div>
-        <button class="promo-btn">Gunakan Promo →</button>
-      </div>
-      <div class="promo-card pc-orange">
-        <div class="promo-label">Member baru</div>
-        <div class="promo-title">Diskon 20%<br>Pesanan Pertama</div>
-        <div class="promo-sub">Kode: <strong>MAKANYUK20</strong><br>Untuk semua menu</div>
-        <button class="promo-btn">Daftar Sekarang →</button>
-      </div>
-      <div class="promo-card pc-purple">
-        <div class="promo-label">Weekend deal</div>
-        <div class="promo-title">Beli 2 Minuman<br>Gratis 1</div>
-        <div class="promo-sub">Berlaku Sabtu & Minggu<br>Semua varian minuman</div>
-        <button class="promo-btn">Lihat Menu →</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- MENU SECTION -->
-<section class="section" id="menu" style="padding-top:0">
-  <div class="s-inner">
-    <div class="s-head">
-      <div>
-        <div class="s-title">Menu Pilihan 🍽️</div>
-        <div class="s-sub">Segar, lezat, dan siap diantar</div>
-      </div>
-      <a href="#" class="see-all">Lihat semua menu →</a>
-    </div>
-
-    <div class="cats" id="cat-tabs">
-      <button class="cat active" data-cat="semua">🍽️ Semua</button>
-      <button class="cat" data-cat="makanan">🍱 Makanan Berat</button>
-      <button class="cat" data-cat="minuman">🧋 Minuman</button>
-      <button class="cat" data-cat="snack">🍟 Snack</button>
-      <button class="cat" data-cat="dessert">🍰 Dessert</button>
-    </div>
-
-    <div class="grid" id="product-grid"></div>
-  </div>
-</section>
-
-<!-- ULASAN SECTION -->
-<section class="section reviews-bg" id="ulasan">
-  <div class="s-inner">
-    <div class="s-head">
-      <div>
-        <div class="s-title">Kata Pelanggan Kami ⭐</div>
-        <div class="s-sub">Ribuan pelanggan sudah puas dengan MakanYuk</div>
-      </div>
-    </div>
-    <div class="rev-grid">
-      <div class="rev-card">
-        <div class="rev-top">
-          <div class="rev-avatar av-g">BN</div>
-          <div>
-            <div class="rev-name">Budi Nugroho</div>
-            <div class="rev-stars">★★★★★</div>
-          </div>
+        <div id="route-register" class="route-view hidden fixed inset-t-0 w-full h-full bg-white flex flex-col md:flex-row z-40">
+            <div class="hidden md:flex md:w-5/12 text-white p-12 flex-col justify-between relative overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-blue-900">
+                <div class="z-10 flex items-center gap-2 text-lg font-bold"><i class="fa-solid fa-graduation-cap text-blue-400"></i> Admin Panel</div>
+                <div class="my-auto z-10 max-w-sm space-y-3">
+                    <h2 class="text-2xl font-extrabold">Sistem Pengelolaan Data Wali Siswa</h2>
+                    <p class="text-blue-100/80 font-light text-xs leading-relaxed">Platform terpadu untuk koordinasi data wali murid yang aman, transparan, dan efisien.</p>
+                    <div class="pt-4 border-t border-blue-700 flex justify-between text-2xs text-blue-200">
+                        <div><p class="font-bold text-white text-sm">1.2k+</p><p>Wali Terdaftar</p></div>
+                        <div><p class="font-bold text-white text-sm">99%</p><p>Data Terverifikasi</p></div>
+                    </div>
+                </div>
+                <div class="text-xs text-blue-300 z-10">&copy; 2026 Sistem Pengelolaan Data Wali Siswa.</div>
+            </div>
+            <div class="w-full md:w-7/12 flex items-center justify-center p-6 bg-slate-50 overflow-y-auto custom-scrollbar h-full">
+                <div class="w-full max-w-xl bg-white border border-slate-100 p-8 rounded-3xl shadow-xl space-y-6 my-auto">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Registrasi Orang Tua / Wali Siswa</h2>
+                        <p class="text-xs text-slate-400">Lengkapi data diri Anda untuk mengakses sistem informasi sekolah.</p>
+                    </div>
+                    <form onsubmit="executeRegister(event)" class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Nama Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500" placeholder="Masukkan nama lengkap">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Alamat Email <span class="text-red-500">*</span></label>
+                                <input type="email" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500" placeholder="nama@email.com">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Nomor Telepon <span class="text-red-500">*</span></label>
+                                <input type="text" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500" placeholder="+62 8...">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Alamat Lengkap <span class="text-red-500">*</span></label>
+                            <textarea required rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 custom-scrollbar resize-none" placeholder="Masukkan alamat lengkap rumah"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Kata Sandi <span class="text-red-500">*</span></label>
+                                <input type="password" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500" placeholder="••••••••">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-2xs font-bold uppercase tracking-wider text-slate-500">Konfirmasi Kata Sandi <span class="text-red-500">*</span></label>
+                                <input type="password" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <div class="flex items-center"><input type="checkbox" required id="agree" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"><label for="agree" class="ml-2 text-xs text-slate-500">Saya menyetujui syarat dan ketentuan yang berlaku.</label></div>
+                        <button type="submit" class="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md">Daftar Sekarang</button>
+                    </form>
+                    <div class="text-center text-xs text-slate-500">Sudah punya akun? <a onclick="showRoute('login')" class="text-blue-600 font-bold hover:underline cursor-pointer">Login</a></div>
+                </div>
+            </div>
         </div>
-        <div class="rev-text">Mantap banget! Nasi kotaknya selalu fresh dan porsinya pas. Pengiriman juga cepet, kurang dari 30 menit udah sampai. Pasti order lagi!</div>
-        <span class="rev-product">🍱 Nasi Kotak Ayam</span>
-      </div>
-      <div class="rev-card">
-        <div class="rev-top">
-          <div class="rev-avatar av-o">SR</div>
-          <div>
-            <div class="rev-name">Siti Rahayu</div>
-            <div class="rev-stars">★★★★★</div>
-          </div>
+
+        <div id="route-app" class="route-view flex-1 flex min-h-0 relative">
+            
+            <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0">
+                <div class="flex flex-col min-h-0">
+                    <div class="p-5 border-b border-slate-100 flex items-center gap-3">
+                        <div id="brand-logo-container" class="w-9 h-9 bg-blue-700 text-white rounded-xl flex items-center justify-center text-base font-bold shadow-md shadow-blue-700/10"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div>
+                            <h3 id="brand-title" class="font-bold text-slate-900 text-sm leading-tight">Admin Panel</h3>
+                            <p id="brand-subtitle" class="text-3xs font-bold text-slate-400 tracking-wider uppercase">School Management</p>
+                        </div>
+                    </div>
+                    <nav id="app-sidebar-nav" class="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar text-xs font-semibold">
+                        </nav>
+                </div>
+                
+                <div class="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
+                    <div class="flex items-center gap-3 px-1">
+                        <img id="user-avatar" src="https://i1-c.pinimg.com/736x/66/2d/3b/662d3b6fee31baa144b04cd8b1c7a699.jpg" class="w-9 h-9 rounded-full object-cover border border-slate-200 bg-slate-100" alt="Profile">
+                        <div class="min-w-0 flex-1">
+                            <h4 id="user-fullname" class="text-xs font-bold text-slate-900 truncate">Haryanto Putro</h4>
+                            <p id="user-role-title" class="text-3xs text-slate-400 truncate font-medium">Super Administrator</p>
+                        </div>
+                    </div>
+                    <button onclick="showRoute('login')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all"><i class="fa-solid fa-arrow-right-from-bracket text-sm"></i> Keluar Sistem</button>
+                </div>
+            </aside>
+
+            <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                
+                <header class="h-16 bg-white border-b border-slate-200 px-6 flex justify-between items-center shrink-0">
+                    <div id="topbar-context-title" class="text-sm font-bold text-slate-900">Sistem Pengelolaan Data Wali Siswa</div>
+                    <div class="flex items-center gap-4 text-slate-500">
+                        <div class="relative w-64 hidden sm:block">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-2xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" class="w-full pl-8 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-2xs outline-none focus:border-blue-500 focus:bg-white" placeholder="Cari data wali atau siswa...">
+                        </div>
+                        <button onclick="switchTab('notifikasi')" class="relative w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full transition-all text-sm"><i class="fa-regular fa-bell"></i><span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span></button>
+                        <button class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full transition-all text-sm"><i class="fa-solid fa-gear"></i></button>
+                    </div>
+                </header>
+
+                <div class="flex-1 overflow-y-auto p-6 custom-scrollbar" id="workspace-viewport">
+
+                    <div id="page-admin-dashboard" class="page-view hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <div><div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Dashboard &rarr; Overview</div><h2 class="text-xl font-bold text-slate-900">Ringkasan Eksekutif Sistem</h2></div>
+                            <div class="flex gap-2"><button class="bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs hover:bg-blue-800" onclick="switchTab('admin-relasi')"><i class="fa-solid fa-plus text-3xs mr-1"></i> Tambah Relasi</button><button class="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50" onclick="switchTab('admin-laporan')"><i class="fa-solid fa-file-invoice text-3xs mr-1"></i> Buat Relasi</button></div>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs flex justify-between items-start"><div><p class="text-3xs font-bold text-slate-400 uppercase">Total Wali</p><h3 class="text-xl font-black text-slate-900 mt-1">1,284</h3><span class="text-3xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md mt-2 inline-block">+12%</span></div><div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-tie"></i></div></div>
+                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs flex justify-between items-start"><div><p class="text-3xs font-bold text-slate-400 uppercase">Total Siswa</p><h3 class="text-xl font-black text-slate-900 mt-1">2,450</h3><span class="text-3xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md mt-2 inline-block">+4%</span></div><div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-graduate"></i></div></div>
+                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs flex justify-between items-start"><div><p class="text-3xs font-bold text-slate-400 uppercase">Total Relasi</p><h3 class="text-xl font-black text-slate-900 mt-1">3,892</h3><span class="text-3xs font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md mt-2 inline-block">0%</span></div><div class="w-9 h-9 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-link"></i></div></div>
+                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs flex justify-between items-start"><div><p class="text-3xs font-bold text-slate-400 uppercase">Total Notifikasi</p><h3 class="text-xl font-black text-slate-900 mt-1">842</h3><span class="text-3xs font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md mt-2 inline-block">23 Baru</span></div><div class="w-9 h-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-regular fa-bell"></i></div></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+                                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white"><h4 class="font-bold text-slate-900 text-sm">Data Wali Terbaru</h4><button class="text-blue-600 text-2xs font-bold hover:underline">Lihat Semua</button></div>
+                                <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-3xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100"><tr><th class="px-4 py-3">Nama Wali</th><th class="px-4 py-3">Pekerjaan</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                                    <tr class="hover:bg-slate-50/50"><td class="px-4 py-3 flex items-center gap-2"><div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-3xs">AS</div><div><p class="font-bold text-slate-900">Andi Saputra</p><p class="text-3xs text-slate-400 font-normal">andi.s@email.com</p></div></td><td class="px-4 py-3">Wiraswasta</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded">Terverifikasi</span></td><td class="px-4 py-3 text-center"><button class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button></td></tr>
+                                    <tr class="hover:bg-slate-50/50"><td class="px-4 py-3 flex items-center gap-2"><div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-3xs">BR</div><div><p class="font-bold text-slate-900">Budi Raharjo</p><p class="text-3xs text-slate-400 font-normal">budi.r@email.com</p></div></td><td class="px-4 py-3">PNS</td><td class="px-4 py-3"><span class="bg-amber-50 text-amber-600 text-3xs font-bold px-2 py-0.5 rounded">Pending</span></td><td class="px-4 py-3 text-center"><button class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button></td></tr>
+                                    <tr class="hover:bg-slate-50/50"><td class="px-4 py-3 flex items-center gap-2"><div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-3xs">CH</div><div><p class="font-bold text-slate-900">Citra Hapsari</p><p class="text-3xs text-slate-400 font-normal">citra.h@email.com</p></div></td><td class="px-4 py-3">Dokter</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded">Terverifikasi</span></td><td class="px-4 py-3 text-center"><button class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button></td></tr>
+                                </tbody></table></div>
+                            </div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-4">
+                                <h4 class="font-bold text-slate-900 text-sm">Aktivitas Terkini</h4>
+                                <div class="space-y-3 font-medium text-xs text-slate-600 relative border-l border-slate-100 pl-4 ml-2">
+                                    <div class="relative mb-2"><span class="absolute -left-6 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white mt-0.5"></span><p class="font-bold text-slate-900">Wali Siswa Baru Terdaftar</p><p class="text-3xs text-slate-400">Bpk. Kurniawan • 2 menit yang lalu</p></div>
+                                    <div class="relative mb-2"><span class="absolute -left-6 w-3 h-3 bg-blue-500 rounded-full border-2 border-white mt-0.5"></span><p class="font-bold text-slate-900">Relasi Diperbarui</p><p class="text-3xs text-slate-400">Siswa A dengan Wali B • 15 menit yang lalu</p></div>
+                                    <div class="relative mb-2"><span class="absolute -left-6 w-3 h-3 bg-amber-500 rounded-full border-2 border-white mt-0.5"></span><p class="font-bold text-slate-900">Verifikasi Wali Pending</p><p class="text-3xs text-slate-400">Ibu Sari • 1 jam yang lalu</p></div>
+                                </div>
+                                <button class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2 rounded-xl border border-slate-100">Lihat Log Lengkap</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-admin-siswa" class="page-view hidden space-y-6">
+                        <div><div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Sistem Pengelolaan Data Wali Siswa</div><h2 class="text-xl font-bold text-slate-900">Kelola Data Siswa</h2><p class="text-xs text-slate-400">Manajemen basis data akademik dan informasi kependudukan siswa.</p></div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex items-center gap-3"><div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-users"></i></div><div><p class="text-3xs font-bold text-slate-400 uppercase">Total Siswa</p><p class="text-sm font-black text-slate-900">1,248</p></div></div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex items-center gap-3"><div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div><div><p class="text-3xs font-bold text-slate-400 uppercase">Status Aktif</p><p class="text-sm font-black text-slate-900">1,215</p></div></div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex items-center gap-3"><div class="w-8 h-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-comment-dots"></i></div><div><p class="text-3xs font-bold text-slate-400 uppercase">Menunggu Verifikasi</p><p class="text-sm font-black text-slate-900">33</p></div></div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex items-center gap-3"><div class="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-user-slash"></i></div><div><p class="text-3xs font-bold text-slate-400 uppercase">Alumni / Pindah</p><p class="text-sm font-black text-slate-900">12</p></div></div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 flex flex-wrap gap-3 justify-between items-center bg-white">
+                                <div class="flex gap-2 text-2xs font-semibold"><select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"><option>Filter Kelas: Semua Kelas</option></select><select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none"><option>Urutkan: Terbaru</option></select></div>
+                                <button class="text-slate-600 border border-slate-200 rounded-xl text-2xs font-bold px-3 py-1.5 hover:bg-slate-50 shadow-3xs"><i class="fa-solid fa-download mr-1 text-slate-400"></i> Export PDF/Excel</button>
+                            </div>
+                            <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-3xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100"><tr><th class="px-6 py-3.5">NISN</th><th class="px-6 py-3.5">Nama Siswa</th><th class="px-6 py-3.5">Kelas</th><th class="px-6 py-3.5">Jenis Kelamin</th><th class="px-6 py-3.5">Status</th><th class="px-6 py-3.5 text-center">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <tr class="hover:bg-slate-50/40"><td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer" onclick="switchTab('profil-siswa')">0082415521</td><td class="px-6 py-3.5 flex items-center gap-2.5"><div class="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-3xs font-bold">AS</div>Aditama Saputra</td><td class="px-6 py-3.5">XII - MIPA 1</td><td class="px-6 py-3.5">Laki-laki</td><td class="px-6 py-3.5"><span class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded-full">Aktif</span></td><td class="px-6 py-3.5 text-center text-slate-400 text-sm"><button class="hover:text-blue-600 mx-1"><i class="fa-regular fa-eye"></i></button><button class="hover:text-amber-500 mx-1"><i class="fa-regular fa-pen-to-square"></i></button><button class="hover:text-red-600 mx-1"><i class="fa-regular fa-trash-can"></i></button></td></tr>
+                                <tr class="hover:bg-slate-50/40"><td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer" onclick="switchTab('profil-siswa')">0091223405</td><td class="px-6 py-3.5 flex items-center gap-2.5"><div class="w-6 h-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-3xs font-bold">BN</div>Bella Nurhaliza</td><td class="px-6 py-3.5">XI - IPS 2</td><td class="px-6 py-3.5">Perempuan</td><td class="px-6 py-3.5"><span class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded-full">Aktif</span></td><td class="px-6 py-3.5 text-center text-slate-400 text-sm"><button class="hover:text-blue-600 mx-1"><i class="fa-regular fa-eye"></i></button><button class="hover:text-amber-500 mx-1"><i class="fa-regular fa-pen-to-square"></i></button><button class="hover:text-red-600 mx-1"><i class="fa-regular fa-trash-can"></i></button></td></tr>
+                                <tr class="hover:bg-slate-50/40"><td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer" onclick="switchTab('profil-siswa')">0076610092</td><td class="px-6 py-3.5 flex items-center gap-2.5"><div class="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-3xs font-bold">FR</div>Fahri Ramadhan</td><td class="px-6 py-3.5">X - MIPA 3</td><td class="px-6 py-3.5">Laki-laki</td><td class="px-6 py-3.5"><span class="bg-amber-50 text-amber-600 text-3xs font-bold px-2 py-0.5 rounded-full">Verifikasi</span></td><td class="px-6 py-3.5 text-center text-slate-400 text-sm"><button class="hover:text-blue-600 mx-1"><i class="fa-regular fa-eye"></i></button><button class="hover:text-amber-500 mx-1"><i class="fa-regular fa-pen-to-square"></i></button><button class="hover:text-red-600 mx-1"><i class="fa-regular fa-trash-can"></i></button></td></tr>
+                            </tbody></table></div>
+                            <div class="p-4 bg-blue-50/60 border-t border-slate-100 flex flex-wrap gap-3 justify-between items-center text-xs text-blue-800"><div class="flex items-center gap-2"><i class="fa-solid fa-circle-info text-blue-500"></i><p><span class="font-bold">Pengingat Sinkronisasi:</span> Data siswa terakhir disinkronkan dengan Dapodik 4 jam yang lalu.</p></div><button class="bg-blue-800 text-white font-bold px-3 py-1.5 rounded-xl text-3xs hover:bg-blue-900 shadow-xs">Sinkronkan Sekarang</button></div>
+                        </div>
+                    </div>
+
+                    <div id="page-admin-relasi" class="page-view hidden space-y-6">
+                        <div><div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Dashboard &rarr; Manajemen Relasi</div><h2 class="text-xl font-bold text-slate-900">Manajemen Relasi Siswa-Wali</h2><p class="text-xs text-slate-400">Hubungkan data siswa dengan orang tua atau wali penanggung jawab.</p></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs space-y-4">
+                                <div class="flex items-center gap-2 border-b border-slate-100 pb-3 font-bold text-slate-900 text-sm"><i class="fa-solid fa-link text-blue-600"></i><h4>Tambah Relasi Baru</h4></div>
+                                <form onsubmit="handleRelationAjaxSubmit(event)" class="space-y-4">
+                                    <div class="space-y-1"><label class="text-3xs font-bold text-slate-400 uppercase">Nama Siswa</label><select id="rel-siswa" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white"><option value="">Pilih Siswa</option><option value="Arkananta Rayyan">Arkananta Rayyan (NISN: 0098231456)</option><option value="Ahmad Faisal">Ahmad Faisal (NISN: 009283741)</option></select></div>
+                                    <div class="space-y-1"><label class="text-3xs font-bold text-slate-400 uppercase">Nama Wali</label><select id="rel-wali" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white"><option value="">Pilih Wali</option><option value="Bambang Wijaya">Bambang Wijaya (bambang@email.com)</option><option value="Drs. Mulyono">Drs. Mulyono (mulyono@email.com)</option></select></div>
+                                    <div class="space-y-1">
+                                        <label class="text-3xs font-bold text-slate-400 uppercase">Tipe Hubungan</label>
+                                        <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold"><label class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input type="radio" name="rel-type" value="AYAH" checked class="hidden"> <span>Ayah</span></label><label class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input type="radio" name="rel-type" value="IBU" class="hidden"> <span>Ibu</span></label><label class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input type="radio" name="rel-type" value="WALI" class="hidden"> <span>Wali</span></label></div>
+                                    </div>
+                                    <div id="rel-ajax-loader" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-3xs text-amber-800 flex items-center gap-2"><i class="fa-solid fa-circle-notch animate-spin text-amber-600 text-xs"></i><span>Triggering Email API: Menembak notifikasi ke alamat wali...</span></div>
+                                    <button type="submit" id="rel-submit-btn" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Relasi</button>
+                                </form>
+                                <div class="bg-blue-950 text-white p-4 rounded-xl space-y-2"><p class="text-2xs font-bold text-blue-300 uppercase">Quick Insights</p><div class="flex justify-between text-2xs"><span>Total Relasi Terdaftar</span><span class="font-bold">1,248</span></div><div class="flex justify-between text-2xs"><span>Siswa Belum Berelasi</span><span class="font-bold text-amber-400">32 Siswa</span></div></div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+                                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white"><h4 class="font-bold text-slate-900 text-sm">Data Relasi Aktif</h4><div class="relative w-48"><span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 text-3xs"><i class="fa-solid fa-filter"></i></span><input type="text" class="w-full pl-7 pr-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-3xs outline-none" placeholder="Filter data..."></div></div>
+                                <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-3xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100"><tr><th class="px-4 py-3">Nama Siswa</th><th class="px-4 py-3">Nama Wali</th><th class="px-4 py-3">Tipe</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead><tbody id="rel-table-body" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                    <tr class="hover:bg-slate-50/50">
+                                        <td class="px-4 py-3"><p class="font-bold text-slate-900">Ahmad Faisal</p><p class="text-3xs text-slate-400 font-normal">NISN: 123456789</p></td>
+                                        <td class="px-4 py-3"><p>Drs. Mulyono</p><p class="text-3xs text-slate-400 font-normal">mulyono@email.com</p></td>
+                                        <td class="px-4 py-3"><span class="text-3xs font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">AYAH</span></td>
+                                        <td class="px-4 py-3"><span class="flex items-center gap-1 text-3xs text-emerald-600"><span class="w-1 h-1 bg-emerald-500 rounded-full"></span> Terverifikasi</span></td>
+                                        <td class="px-4 py-3 text-center text-slate-400"><button class="hover:text-blue-600 mx-1"><i class="fa-regular fa-pen-to-square"></i></button><button class="hover:text-red-600 mx-1"><i class="fa-regular fa-trash-can"></i></button></td>
+                                    </tr>
+                                </tbody></table></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-admin-laporan" class="page-view hidden space-y-6">
+                        <div class="flex flex-wrap gap-4 justify-between items-center">
+                            <div><h2 class="text-xl font-bold text-slate-900">Laporan Data Wali Siswa</h2><p class="text-xs text-slate-400">Analisis komprehensif data perwalian dan keterlibatan orang tua.</p></div>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex flex-col sm:flex-row gap-4 items-end text-2xs font-bold text-slate-500">
+                            <div class="space-y-1 w-full sm:w-48"><p class="uppercase tracking-wider">Filter Kelas</p><select class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium"><option>Semua Kelas</option></select></div>
+                            <div class="space-y-1 w-full sm:w-64"><p class="uppercase tracking-wider">Rentang Tanggal</p><div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-regular fa-calendar"></i></span><input type="text" class="w-full pl-8 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium" value="01 Jan 2026 - 31 Mar 2026"></div></div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+                            <div class="p-4 bg-white border-b border-slate-100 flex justify-between items-center"><h4 class="font-bold text-slate-900 text-sm">Data Rinci Wali</h4></div>
+                            <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-3xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100"><tr><th class="px-4 py-3">Nama Wali</th><th class="px-4 py-3">Siswa Terkait</th><th class="px-4 py-3">Kelas</th><th class="px-4 py-3">Hubungan</th><th class="px-4 py-3">No. Telepon</th></tr></thead><tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <tr><td class="px-4 py-3"><p class="font-bold text-slate-900">Budi Pratama</p></td><td class="px-4 py-3">Aditya</td><td class="px-4 py-3">10 - IPA 1</td><td class="px-4 py-3"><span class="text-3xs font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">AYAH</span></td><td class="px-4 py-3">0812-3456-7890</td></tr>
+                            </tbody></table></div>
+                        </div>
+                    </div>
+
+                    <div id="page-parent-portal" class="page-view hidden space-y-6">
+                        <div><h2 class="text-xl font-bold text-slate-900">Selamat Datang, Bapak Budi Santoso</h2><p class="text-xs text-slate-400">Berikut adalah ringkasan informasi pendidikan putra-putri Anda hari ini.</p></div>
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs text-center space-y-4">
+                                <div class="w-20 h-20 bg-slate-100 rounded-full overflow-hidden mx-auto border-2 border-white shadow-xs"><img src="https://i.pinimg.com/736x/e0/19/12/e01912803e7a415f4f118418c0302412.jpg" class="w-full h-full object-cover"></div>
+                                <div><h4 class="font-bold text-slate-900 text-sm">Budi Santoso</h4><p class="text-3xs text-slate-400">abdeeputra585@gmail.com</p></div>
+                                <button class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-xs" onclick="switchTab('profil-siswa')"><i class="fa-regular fa-pen-to-square mr-1"></i> Update Profil</button>
+                            </div>
+                            <div class="xl:col-span-2 bg-white border border-slate-200 p-6 rounded-2xl shadow-2xs flex flex-col sm:flex-row gap-6">
+                                <div class="w-full sm:w-1/3 bg-slate-100 rounded-xl overflow-hidden h-40 border"><img src="https://adityanataniel277-kece.github.io/WebsiteNathan/fotoku%20boloo_josjis.jpg" class="w-full h-full object-cover"></div>
+                                <div class="w-full sm:w-2/3 flex flex-col justify-between min-h-0">
+                                    <div class="flex justify-between items-start"><div><div class="text-4xs font-extrabold uppercase bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded tracking-wider">Nama Lengkap Anak</div><h3 class="text-base font-bold text-slate-900 mt-1">Aditya Pratama</h3></div></div>
+                                    <div class="grid grid-cols-3 gap-2 border-t pt-4 mt-4 text-center font-medium">
+                                        <div class="bg-blue-50/50 p-2 border border-blue-100 rounded-xl"><p class="text-4xs text-blue-500 font-bold uppercase">Kehadiran</p><p class="text-sm font-black text-blue-900 mt-0.5">98%</p></div>
+                                        <div class="bg-emerald-50/50 p-2 border border-emerald-100 rounded-xl"><p class="text-4xs text-emerald-500 font-bold uppercase">Rata Nilai</p><p class="text-sm font-black text-emerald-900 mt-0.5">88.5</p></div>
+                                        <div class="bg-amber-50/50 p-2 border border-amber-100 rounded-xl"><p class="text-4xs text-amber-500 font-bold uppercase">Tugas Selesai</p><p class="text-sm font-black text-amber-900 mt-0.5">12/12</p></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-profil-siswa" class="page-view hidden space-y-6">
+                        <div class="flex flex-col sm:flex-row gap-4 justify-between items-start border-b border-slate-200 pb-4 bg-white -mx-6 -mt-6 p-6">
+                            <div class="flex items-center gap-1.5 text-2xs font-semibold text-slate-400"><span>Dashboard</span>&rarr;<span>Data Siswa</span>&rarr;<span class="text-slate-900 font-bold">Profil Siswa</span></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                            <div class="bg-white border border-slate-200 p-6 rounded-2xl text-center shadow-2xs space-y-4">
+                                <div class="w-24 h-24 bg-sky-50 rounded-full mx-auto overflow-hidden border-2 border-white shadow-md"><img src="https://adityanataniel277-kece.github.io/WebsiteNathan/fotoku%20boloo_josjis.jpg" class="w-full h-full object-cover"></div>
+                                <div><h3 class="text-lg font-bold text-slate-900">Abdee Mahardika P</h3><p class="text-3xs text-slate-400 font-medium mt-0.5">NIM: 322510015</p></div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white border border-slate-200 p-6 rounded-2xl shadow-2xs space-y-4">
+                                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2"><i class="fa-solid fa-id-card text-blue-600"></i> Detail Informasi Pribadi</h3>
+                                <p class="text-xs font-semibold text-slate-700">Jl. kemirahan GG 2 NO 16 RT 02 RW 02 </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-notifikasi" class="page-view hidden space-y-6">
+                        <div class="flex justify-between items-center"><div><h2 class="text-xl font-bold text-slate-900">Pusat Notifikasi</h2></div></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                            <div class="lg:col-span-2 space-y-4 font-medium text-xs text-slate-600">
+                                <div class="bg-white border-l-4 border-blue-600 p-4 border border-slate-200 rounded-r-2xl shadow-3xs flex gap-3"><div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-circle-exclamation"></i></div><div><h5 class="font-bold text-slate-900 text-sm">Verifikasi Data Berhasil</h5><p class="text-xs text-slate-500 mt-0.5">Data wali siswa atas nama Bapak Rahmad Hidayat telah berhasil diverifikasi.</p></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <footer class="h-10 bg-white border-t border-slate-200 text-center flex items-center justify-center text-3xs font-bold tracking-wider text-slate-400 uppercase shrink-0">&copy; 2026 Sistem Pengelolaan Data Wali Siswa &bull; Version 1.2.0</footer>
+
+            </div>
         </div>
-        <div class="rev-text">Boba taronyaaa enak banget, gak terlalu manis. Topping pearl-nya kenyal sempurna. Harga juga reasonable, worth it banget!</div>
-        <span class="rev-product">🧋 Boba Taro Susu</span>
-      </div>
-      <div class="rev-card">
-        <div class="rev-top">
-          <div class="rev-avatar av-p">AP</div>
-          <div>
-            <div class="rev-name">Andi Pratama</div>
-            <div class="rev-stars">★★★★★</div>
-          </div>
-        </div>
-        <div class="rev-text">Cheesecakenya lembut banget, beneran premium. Kemasan juga rapi dan aman sampai rumah. Rekomendasiin ke semua teman-teman!</div>
-        <span class="rev-product">🍰 Cheesecake Slice</span>
-      </div>
+
     </div>
-  </div>
-</section>
 
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div>
-        <div class="footer-logo">Makan<em>Yuk</em></div>
-        <p class="footer-desc">Platform toko online makanan & minuman terpercaya. Pesan kapan saja, diantar ke mana saja dengan cepat dan aman.</p>
-        <div class="footer-socials">
-          <a class="social-btn" href="#">ig</a>
-          <a class="social-btn" href="#">tw</a>
-          <a class="social-btn" href="#">yt</a>
-          <a class="social-btn" href="#">wa</a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <h4>Menu</h4>
-        <ul>
-          <li><a href="#">Makanan Berat</a></li>
-          <li><a href="#">Minuman</a></li>
-          <li><a href="#">Snack</a></li>
-          <li><a href="#">Dessert</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Perusahaan</h4>
-        <ul>
-          <li><a href="#">Tentang Kami</a></li>
-          <li><a href="#">Karier</a></li>
-          <li><a href="#">Blog</a></li>
-          <li><a href="#">Kontak</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Bantuan</h4>
-        <ul>
-          <li><a href="#">FAQ</a></li>
-          <li><a href="#">Lacak Pesanan</a></li>
-          <li><a href="#">Syarat & Ketentuan</a></li>
-          <li><a href="#">Kebijakan Privasi</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2026 MakanYuk. Semua hak cipta dilindungi.</span>
-      <span>Dibuat dengan ❤️ untuk UTS Bahasa Pemrograman Genap 2026</span>
-    </div>
-  </div>
-</footer>
-
-<div class="toast-wrap" id="toast-wrap"></div>
-
-<script>
-const PRODUCTS = [
-  {id:1, name:"Nasi Kotak Ayam Spesial", cat:"makanan", price:25000, emoji:"🍱", badge:"hot", badgeLabel:"Terlaris"},
-  {id:2, name:"Boba Taro Susu",          cat:"minuman", price:18000, emoji:"🧋", badge:null},
-  {id:3, name:"Mie Ayam Spesial",        cat:"makanan", price:22000, emoji:"🍜", badge:null},
-  {id:4, name:"Cheesecake Slice",        cat:"dessert",  price:20000, emoji:"🍰", badge:"new", badgeLabel:"Baru"},
-  {id:5, name:"Es Matcha Latte",         cat:"minuman", price:22000, emoji:"🍵", badge:null},
-  {id:6, name:"Nasi Goreng Spesial",     cat:"makanan", price:27000, emoji:"🍳", badge:"pop", badgeLabel:"Populer"},
-  {id:7, name:"Pisang Goreng Keju",      cat:"snack",   price:10000, emoji:"🍌", badge:null},
-  {id:8, name:"Kopi Susu Kekinian",      cat:"minuman", price:20000, emoji:"☕", badge:"pop", badgeLabel:"Populer"},
-  {id:9, name:"Kentang Goreng Crispy",   cat:"snack",   price:15000, emoji:"🍟", badge:null},
-  {id:10,name:"Es Krim Coklat",          cat:"dessert",  price:12000, emoji:"🍫", badge:"new", badgeLabel:"Baru"},
-  {id:11,name:"Ayam Geprek Sambal",      cat:"makanan", price:23000, emoji:"🌶️", badge:"hot", badgeLabel:"Pedas"},
-  {id:12,name:"Jus Alpukat Susu",        cat:"minuman", price:16000, emoji:"🥑", badge:null},
-];
-
-let cart = JSON.parse(localStorage.getItem('makanyuk_cart')||'[]');
-let activeCat = 'semua';
-
-function fmtRp(n){return 'Rp '+n.toLocaleString('id-ID')}
-
-function saveCart(){localStorage.setItem('makanyuk_cart',JSON.stringify(cart));updateBadge()}
-function updateBadge(){
-  const t=cart.reduce((s,i)=>s+i.qty,0);
-  const b=document.getElementById('cart-badge');
-  if(b){b.textContent=t;b.style.display=t>0?'flex':'none'}
-}
-
-function addCart(id){
-  const p=PRODUCTS.find(x=>x.id===id);if(!p)return;
-  const ex=cart.find(x=>x.id===id);
-  if(ex)ex.qty++;else cart.push({id,name:p.name,price:p.price,emoji:p.emoji,qty:1});
-  saveCart();toast(p.emoji+' '+p.name+' ditambahkan!');
-}
-
-function toast(msg){
-  const w=document.getElementById('toast-wrap');
-  const t=document.createElement('div');
-  t.className='toast';t.textContent=msg;
-  w.appendChild(t);setTimeout(()=>t.remove(),2600);
-}
-
-function renderProducts(cat){
-  const query=document.getElementById('search-input').value.toLowerCase();
-  const list=PRODUCTS.filter(p=>(cat==='semua'||p.cat===cat)&&p.name.toLowerCase().includes(query));
-  const g=document.getElementById('product-grid');
-  if(!list.length){g.innerHTML='<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem">Produk tidak ditemukan 😅</p>';return}
-  g.innerHTML=list.map(p=>`
-    <div class="pcard">
-      <div class="pcard-img">
-        ${p.badge?`<span class="pcard-badge badge-${p.badge}">${p.badgeLabel}</span>`:''}
-        ${p.emoji}
-      </div>
-      <div class="pcard-body">
-        <div class="pcard-name">${p.name}</div>
-        <div class="pcard-cat"><span class="pcard-dot"></span>${p.cat.charAt(0).toUpperCase()+p.cat.slice(1)}</div>
-        <div class="pcard-foot">
-          <span class="pcard-price">${fmtRp(p.price)}</span>
-          <button class="pcard-add" onclick="addCart(${p.id})">+</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-document.getElementById('cat-tabs').addEventListener('click',e=>{
-  const tab=e.target.closest('.cat');if(!tab)return;
-  document.querySelectorAll('.cat').forEach(t=>t.classList.remove('active'));
-  tab.classList.add('active');activeCat=tab.dataset.cat;
-  renderProducts(activeCat);
-});
-document.getElementById('search-input').addEventListener('input',()=>renderProducts(activeCat));
-function doSearch(){renderProducts(activeCat)}
-
-const user=JSON.parse(localStorage.getItem('makanyuk_user')||'null');
-if(user){
-  document.getElementById('btn-masuk').textContent='Hi, '+user.name;
-  document.getElementById('btn-daftar').textContent='Keluar';
-  document.getElementById('btn-daftar').onclick=e=>{e.preventDefault();localStorage.removeItem('makanyuk_user');location.reload()};
-}
- 
-updateBadge();
-renderProducts('semua');
-</script>
+    <script src="script.js"></script>
 </body>
 </html>
