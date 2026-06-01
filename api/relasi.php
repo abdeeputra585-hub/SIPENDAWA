@@ -87,6 +87,58 @@ switch ($method) {
         $stmt->close();
         break;
 
+    case 'PUT':
+        if (!isset($_GET['id'])) {
+            sendResponse(['success' => false, 'message' => 'ID relasi diperlukan'], 400);
+        }
+
+        $id    = (int)$_GET['id'];
+        $input = getJsonInput();
+
+        $fields = [];
+        $types  = '';
+        $values = [];
+
+        if (isset($input['tipe']) && in_array($input['tipe'], ['AYAH', 'IBU', 'WALI'])) {
+            $fields[] = "tipe = ?";
+            $types   .= 's';
+            $values[] = $input['tipe'];
+        }
+
+        if (isset($input['status']) && in_array($input['status'], ['Terverifikasi', 'Pending'])) {
+            $fields[] = "status = ?";
+            $types   .= 's';
+            $values[] = $input['status'];
+        }
+
+        if (empty($fields)) {
+            sendResponse(['success' => false, 'message' => 'Tidak ada data yang diupdate'], 400);
+        }
+
+        $types   .= 'i';
+        $values[] = $id;
+
+        $sql  = "UPDATE relasi SET " . implode(', ', $fields) . " WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+
+        if (!$stmt) {
+            sendResponse(['success' => false, 'message' => 'Database error'], 500);
+        }
+
+        $stmt->bind_param($types, ...$values);
+
+        if ($stmt->execute()) {
+            if ($stmt->affected_rows > 0) {
+                sendResponse(['success' => true, 'message' => 'Relasi berhasil diperbarui']);
+            } else {
+                sendResponse(['success' => false, 'message' => 'Relasi tidak ditemukan atau tidak ada perubahan'], 404);
+            }
+        } else {
+            sendResponse(['success' => false, 'message' => 'Gagal update relasi: ' . $stmt->error], 500);
+        }
+        $stmt->close();
+        break;
+
     case 'DELETE':
         if (!isset($_GET['id'])) {
             sendResponse(['success' => false, 'message' => 'ID relasi diperlukan'], 400);

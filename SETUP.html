@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Setup - EduGuardian</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .content { padding: 40px; }
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+            background-color: #f8f9ff;
+            border-radius: 4px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step h2 { 
+            color: #333; 
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .step p { 
+            color: #666; 
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        .step ul { 
+            margin-left: 50px; 
+            color: #666;
+            line-height: 1.8;
+        }
+        .step li { margin-bottom: 8px; }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover { 
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-secondary:hover { 
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        .alert-info { 
+            background: #e6fffa; 
+            border-color: #38b2ac;
+            color: #234e52;
+        }
+        .alert-warning { 
+            background: #fffaf0; 
+            border-color: #ed8936;
+            color: #7c2d12;
+        }
+        .alert-success { 
+            background: #f0fff4; 
+            border-color: #48bb78;
+            color: #22543d;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature-card {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+        }
+        .feature-card h3 { color: #667eea; margin-bottom: 10px; }
+        .feature-card p { color: #666; font-size: 0.95em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 EduGuardian</h1>
+            <p>Sistem Manajemen Wali Siswa</p>
+        </div>
+
+        <div class="content">
+            <div class="alert alert-info">
+                <strong>ℹ️ Informasi:</strong> Ikuti langkah-langkah di bawah untuk setup aplikasi dengan sempurna.
+            </div>
+
+            <!-- STEP 1 -->
+            <div class="step">
+                <h2><span class="step-number">1</span>Aktifkan Apache & MySQL</h2>
+                <p>Pastikan XAMPP atau WAMP sudah running:</p>
+                <ul>
+                    <li>Buka Control Panel XAMPP/WAMP</li>
+                    <li>Klik tombol <strong>"Start"</strong> untuk Apache</li>
+                    <li>Klik tombol <strong>"Start"</strong> untuk MySQL</li>
+                    <li>Status harus menunjukkan <strong>"Running"</strong> (warna hijau)</li>
+                </ul>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="step">
+                <h2><span class="step-number">2</span>Cek Koneksi Database</h2>
+                <p>Verifikasi bahwa MySQL sudah siap:</p>
+                <ul>
+                    <li>Buka browser → <strong>http://localhost/phpmyadmin</strong></li>
+                    <li>Jika berhasil, Anda akan melihat dashboard phpMyAdmin</li>
+                    <li>Ini membuktikan MySQL berfungsi dengan baik</li>
+                </ul>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="step">
+                <h2><span class="step-number">3</span>Setup Database Otomatis</h2>
+                <p>Jalankan script setup untuk membuat database dan tabel:</p>
+                <div class="code">http://localhost/[path-ke-folder]/setup_db.php</div>
+                <p><strong>Contoh:</strong></p>
+                <div class="code">http://localhost/UTS%20PEMOGRAMAN/setup_db.php</div>
+                <p style="margin-top: 10px;">Sistem akan:</p>
+                <ul>
+                    <li>✓ Membuat database <strong>eduguardian</strong></li>
+                    <li>✓ Membuat 6 tabel (users, siswa, wali, relasi, notifikasi, kehadiran)</li>
+                    <li>✓ Menampilkan status setup (SUCCESS/ERROR)</li>
+                </ul>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="step">
+                <h2><span class="step-number">4</span>Mulai Menggunakan Aplikasi</h2>
+                <p>Jika setup berhasil, buka dashboard utama:</p>
+                <div class="code">http://localhost/[path-ke-folder]/index.php</div>
+                <p>Anda akan melihat 3 tab:</p>
+                <ul>
+                    <li>📝 <strong>Tambah Siswa</strong> - Tambah data siswa baru</li>
+                    <li>👨‍👩‍👧 <strong>Tambah Wali</strong> - Tambah data wali siswa</li>
+                    <li>🔗 <strong>Hubungkan Siswa-Wali</strong> - Buat relasi siswa dengan wali</li>
+                </ul>
+            </div>
+
+            <!-- FITUR -->
+            <div style="margin-top: 40px;">
+                <h3 style="color: #333; margin-bottom: 20px;">✨ Fitur Utama Aplikasi</h3>
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>📝 Input Data</h3>
+                        <p>Tambahkan siswa dan wali melalui form yang user-friendly</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📋 Lihat Data</h3>
+                        <p>Tampilkan daftar lengkap siswa, wali, dan relasi mereka</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>✏️ Edit Data</h3>
+                        <p>Ubah informasi siswa, wali, atau relasi kapan saja</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🗑️ Hapus Data</h3>
+                        <p>Hapus data dengan konfirmasi untuk keamanan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TROUBLESHOOTING -->
+            <div class="alert alert-warning" style="margin-top: 30px;">
+                <strong>⚠️ Jika Ada Masalah:</strong>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Error Koneksi?</strong> → Pastikan MySQL sudah aktif dan file <code>koneksi.php</code> benar</li>
+                    <li><strong>Error 404?</strong> → Cek path folder, gunakan nama folder dengan spasi %20</li>
+                    <li><strong>Data tidak muncul?</strong> → Pastikan sudah menambah siswa dan wali sebelum membuat relasi</li>
+                    <li><strong>Database sudah ada error?</strong> → Buka phpMyAdmin, hapus database eduguardian, jalankan setup_db.php lagi</li>
+                </ul>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="button-group" style="margin-top: 30px; justify-content: center;">
+                <a href="setup_db.php" class="btn btn-primary">⚙️ Jalankan Setup Sekarang</a>
+                <a href="index.php" class="btn btn-secondary">→ Buka Dashboard</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #999;">
+                <p>📚 EduGuardian v1.0 | Sistem Manajemen Wali Siswa</p>
+                <p style="font-size: 0.9em; margin-top: 5px;">Dikembangkan untuk UTS Pemrograman</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

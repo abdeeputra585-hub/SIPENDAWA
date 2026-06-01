@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Aplikasi - EduGuardian</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f4f8;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 { color: #333; margin-bottom: 10px; text-align: center; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .items { padding: 0; }
+        .item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .item:last-child { border-bottom: none; }
+        .checkbox { 
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .item-info { flex: 1; }
+        .item-name { 
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .item-desc { 
+            font-size: 0.9em;
+            color: #666;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .status-ok { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        .status-pending { 
+            background: #fff3cd; 
+            color: #856404; 
+        }
+        .summary {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid #667eea;
+        }
+        .summary h3 { color: #333; margin-bottom: 10px; }
+        .summary-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .summary-item { padding: 15px; background: white; border-radius: 4px; border-left: 3px solid #667eea; }
+        .summary-item strong { color: #667eea; font-size: 1.3em; display: block; }
+        .summary-item span { color: #666; font-size: 0.9em; }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover { 
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-secondary:hover { 
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        .category-icon { font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Checklist Aplikasi EduGuardian</h1>
+        <p class="subtitle">Pastikan semua file dan database sudah siap</p>
+
+        <!-- CORE FILES -->
+        <div class="section">
+            <div class="section-header"><span class="category-icon">📁</span> File Inti Aplikasi</div>
+            <div class="items">
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">koneksi.php</div>
+                        <div class="item-desc">Koneksi ke database eduguardian (root user)</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">index.php</div>
+                        <div class="item-desc">Dashboard utama dengan 3 tab input data</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">simpan.php</div>
+                        <div class="item-desc">Proses menyimpan data siswa, wali, dan relasi</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">setup_db.php</div>
+                        <div class="item-desc">Membuat database dan tabel otomatis</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATA DISPLAY -->
+        <div class="section">
+            <div class="section-header"><span class="category-icon">📋</span> File Tampil Data</div>
+            <div class="items">
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">tampil.php</div>
+                        <div class="item-desc">Menampilkan tabel data siswa dengan Edit & Hapus</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">tampil_wali.php</div>
+                        <div class="item-desc">Menampilkan tabel data wali dengan Edit & Hapus</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">tampil_relasi.php</div>
+                        <div class="item-desc">Menampilkan tabel relasi siswa-wali dengan Edit & Hapus</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT & UPDATE -->
+        <div class="section">
+            <div class="section-header"><span class="category-icon">✏️</span> File Edit & Update</div>
+            <div class="items">
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">edit.php → update.php</div>
+                        <div class="item-desc">Form edit dan proses update data siswa</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">edit_wali.php → update_wali.php</div>
+                        <div class="item-desc">Form edit dan proses update data wali</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">edit_relasi.php → update_relasi.php</div>
+                        <div class="item-desc">Form edit dan proses update relasi</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DELETE -->
+        <div class="section">
+            <div class="section-header"><span class="category-icon">🗑️</span> File Hapus Data</div>
+            <div class="items">
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">delete.php</div>
+                        <div class="item-desc">Menghapus data siswa dari database</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">delete_wali.php</div>
+                        <div class="item-desc">Menghapus data wali dari database</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">delete_relasi.php</div>
+                        <div class="item-desc">Menghapus relasi siswa-wali dari database</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATABASE -->
+        <div class="section">
+            <div class="section-header"><span class="category-icon">💾</span> Database & SQL</div>
+            <div class="items">
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">perpustakaan.sql</div>
+                        <div class="item-desc">Script SQL dengan CREATE TABLE (tanpa data INSERT)</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">Database eduguardian</div>
+                        <div class="item-desc">6 tabel: users, siswa, wali, relasi, notifikasi, kehadiran</div>
+                    </div>
+                    <span class="status-badge status-pending">Perlu Setup</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOKUMENTASI -->
+        <div class="section">
+            <div class="section-header"><span class="category-icon">📖</span> Dokumentasi</div>
+            <div class="items">
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">README.md</div>
+                        <div class="item-desc">Dokumentasi lengkap tentang aplikasi dan fitur</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+                <div class="item">
+                    <input type="checkbox" class="checkbox">
+                    <div class="item-info">
+                        <div class="item-name">SETUP.html</div>
+                        <div class="item-desc">Panduan step-by-step untuk setup aplikasi</div>
+                    </div>
+                    <span class="status-badge status-ok">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary">
+            <h3>📊 Ringkasan Status</h3>
+            <div class="summary-items">
+                <div class="summary-item">
+                    <strong>14</strong>
+                    <span>File PHP siap digunakan</span>
+                </div>
+                <div class="summary-item">
+                    <strong>6</strong>
+                    <span>Tabel database tersedia</span>
+                </div>
+                <div class="summary-item">
+                    <strong>100%</strong>
+                    <span>Fitur CRUD lengkap</span>
+                </div>
+                <div class="summary-item">
+                    <strong>✅</strong>
+                    <span>Keamanan SQL terjaga</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="action-buttons">
+            <a href="SETUP.html" class="btn btn-primary">📖 Lihat Panduan Setup</a>
+            <a href="setup_db.php" class="btn btn-primary">⚙️ Setup Database</a>
+            <a href="index.php" class="btn btn-secondary">→ Buka Dashboard</a>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999;">
+            <p>✅ Semua file PHP dan SQL sudah siap digunakan</p>
+            <p style="font-size: 0.9em; margin-top: 5px;">EduGuardian v1.0 | Sistem Manajemen Wali Siswa</p>
+        </div>
+    </div>
+</body>
+</html>

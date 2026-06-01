@@ -70,12 +70,13 @@
                         <div class="space-y-1">
                             <div class="flex justify-between items-center"><label
                                     class="text-2xs font-bold uppercase tracking-wider text-slate-500">Kata
-                                    Sandi</label><a onclick="showForgotPassword()" class="text-2xs text-blue-600 hover:underline cursor-pointer">Lupa
+                                    Sandi</label><a onclick="showForgotPassword()"
+                                    class="text-2xs text-blue-600 hover:underline cursor-pointer">Lupa
                                     Sandi?</a></div>
                             <div class="relative"><span
                                     class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs"><i
                                         class="fa-solid fa-lock"></i></span><input type="password" id="login-password"
-                                    value="password123" required
+                                    value="password" required
                                     class="w-full pl-9 pr-10 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"><span
                                     class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 text-xs cursor-pointer"><i
                                         class="fa-regular fa-eye"></i></span></div>
@@ -327,7 +328,8 @@
                                 class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
                                 <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white">
                                     <h4 class="font-bold text-slate-900 text-sm">Data Wali Terbaru</h4><button
-                                        onclick="switchTab('admin-siswa')" class="text-blue-600 text-2xs font-bold hover:underline">Lihat Semua</button>
+                                        onclick="switchTab('admin-siswa')"
+                                        class="text-blue-600 text-2xs font-bold hover:underline">Lihat Semua</button>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left text-xs">
@@ -341,63 +343,7 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                                            <tr class="hover:bg-slate-50/50">
-                                                <td class="px-4 py-3 flex items-center gap-2">
-                                                    <div
-                                                        class="w-7 h-7 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-3xs">
-                                                        AS</div>
-                                                    <div>
-                                                        <p class="font-bold text-slate-900">Andi Saputra</p>
-                                                        <p class="text-3xs text-slate-400 font-normal">andi.s@email.com
-                                                        </p>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3">Wiraswasta</td>
-                                                <td class="px-4 py-3"><span
-                                                        class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded">Terverifikasi</span>
-                                                </td>
-                                                <td class="px-4 py-3 text-center"><button
-                                                        class="text-slate-400 hover:text-slate-600"><i
-                                                            class="fa-solid fa-ellipsis-vertical"></i></button></td>
-                                            </tr>
-                                            <tr class="hover:bg-slate-50/50">
-                                                <td class="px-4 py-3 flex items-center gap-2">
-                                                    <div
-                                                        class="w-7 h-7 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-3xs">
-                                                        BR</div>
-                                                    <div>
-                                                        <p class="font-bold text-slate-900">Budi Raharjo</p>
-                                                        <p class="text-3xs text-slate-400 font-normal">budi.r@email.com
-                                                        </p>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3">PNS</td>
-                                                <td class="px-4 py-3"><span
-                                                        class="bg-amber-50 text-amber-600 text-3xs font-bold px-2 py-0.5 rounded">Pending</span>
-                                                </td>
-                                                <td class="px-4 py-3 text-center"><button
-                                                        class="text-slate-400 hover:text-slate-600"><i
-                                                            class="fa-solid fa-ellipsis-vertical"></i></button></td>
-                                            </tr>
-                                            <tr class="hover:bg-slate-50/50">
-                                                <td class="px-4 py-3 flex items-center gap-2">
-                                                    <div
-                                                        class="w-7 h-7 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-3xs">
-                                                        CH</div>
-                                                    <div>
-                                                        <p class="font-bold text-slate-900">Citra Hapsari</p>
-                                                        <p class="text-3xs text-slate-400 font-normal">citra.h@email.com
-                                                        </p>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3">Dokter</td>
-                                                <td class="px-4 py-3"><span
-                                                        class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded">Terverifikasi</span>
-                                                </td>
-                                                <td class="px-4 py-3 text-center"><button
-                                                        class="text-slate-400 hover:text-slate-600"><i
-                                                            class="fa-solid fa-ellipsis-vertical"></i></button></td>
-                                            </tr>
+                                            <!-- Data diisi oleh loadDashboardData() dari API -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -406,18 +352,21 @@
                                 <h4 class="font-bold text-slate-900 text-sm">Aktivitas Terkini</h4>
                                 <div id="aktivitas-list"
                                     class="space-y-3 font-medium text-xs text-slate-600 relative border-l border-slate-100 pl-4 ml-2">
-                                    <div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="switchTab('notifikasi')"><span
+                                    <div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onclick="switchTab('notifikasi')"><span
                                             class="absolute -left-6 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white mt-0.5"></span>
                                         <p class="font-bold text-slate-900">Wali Siswa Baru Terdaftar</p>
                                         <p class="text-3xs text-slate-400">Bpk. Kurniawan • 2 menit yang lalu</p>
                                     </div>
-                                    <div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="switchTab('admin-relasi')"><span
+                                    <div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onclick="switchTab('admin-relasi')"><span
                                             class="absolute -left-6 w-3 h-3 bg-blue-500 rounded-full border-2 border-white mt-0.5"></span>
                                         <p class="font-bold text-slate-900">Relasi Diperbarui</p>
                                         <p class="text-3xs text-slate-400">Siswa A dengan Wali B • 15 menit yang lalu
                                         </p>
                                     </div>
-                                    <div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="switchTab('notifikasi')"><span
+                                    <div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onclick="switchTab('notifikasi')"><span
                                             class="absolute -left-6 w-3 h-3 bg-amber-500 rounded-full border-2 border-white mt-0.5"></span>
                                         <p class="font-bold text-slate-900">Verifikasi Wali Pending</p>
                                         <p class="text-3xs text-slate-400">Ibu Sari • 1 jam yang lalu</p>
@@ -431,12 +380,19 @@
                     </div>
 
                     <div id="page-admin-siswa" class="page-view hidden space-y-6">
-                        <div>
-                            <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Sistem
-                                Pengelolaan Data Wali Siswa</div>
-                            <h2 class="text-xl font-bold text-slate-900">Kelola Data Siswa</h2>
-                            <p class="text-xs text-slate-400">Manajemen basis data akademik dan informasi kependudukan
-                                siswa.</p>
+                        <div class="flex flex-wrap gap-4 justify-between items-start">
+                            <div>
+                                <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Sistem
+                                    Pengelolaan Data Wali Siswa</div>
+                                <h2 class="text-xl font-bold text-slate-900">Kelola Data Siswa</h2>
+                                <p class="text-xs text-slate-400">Manajemen basis data akademik dan informasi
+                                    kependudukan
+                                    siswa.</p>
+                            </div>
+                            <button onclick="openTambahSiswaModal()"
+                                class="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all">
+                                <i class="fa-solid fa-plus"></i> Tambah Siswa Baru
+                            </button>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div
@@ -512,69 +468,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                                        <tr class="hover:bg-slate-50/40">
-                                            <td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer"
-                                                onclick="switchTab('profil-siswa')">0082415521</td>
-                                            <td class="px-6 py-3.5 flex items-center gap-2.5">
-                                                <div
-                                                    class="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-3xs font-bold">
-                                                    AS</div>Aditama Saputra
-                                            </td>
-                                            <td class="px-6 py-3.5">XII - MIPA 1</td>
-                                            <td class="px-6 py-3.5">Laki-laki</td>
-                                            <td class="px-6 py-3.5"><span
-                                                    class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded-full">Aktif</span>
-                                            </td>
-                                            <td class="px-6 py-3.5 text-center text-slate-400 text-sm"><button
-                                                    class="hover:text-blue-600 mx-1"><i
-                                                        class="fa-regular fa-eye"></i></button><button
-                                                    class="hover:text-amber-500 mx-1"><i
-                                                        class="fa-regular fa-pen-to-square"></i></button><button
-                                                    class="hover:text-red-600 mx-1"><i
-                                                        class="fa-regular fa-trash-can"></i></button></td>
-                                        </tr>
-                                        <tr class="hover:bg-slate-50/40">
-                                            <td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer"
-                                                onclick="switchTab('profil-siswa')">0091223405</td>
-                                            <td class="px-6 py-3.5 flex items-center gap-2.5">
-                                                <div
-                                                    class="w-6 h-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-3xs font-bold">
-                                                    BN</div>Bella Nurhaliza
-                                            </td>
-                                            <td class="px-6 py-3.5">XI - IPS 2</td>
-                                            <td class="px-6 py-3.5">Perempuan</td>
-                                            <td class="px-6 py-3.5"><span
-                                                    class="bg-emerald-50 text-emerald-600 text-3xs font-bold px-2 py-0.5 rounded-full">Aktif</span>
-                                            </td>
-                                            <td class="px-6 py-3.5 text-center text-slate-400 text-sm"><button
-                                                    class="hover:text-blue-600 mx-1"><i
-                                                        class="fa-regular fa-eye"></i></button><button
-                                                    class="hover:text-amber-500 mx-1"><i
-                                                        class="fa-regular fa-pen-to-square"></i></button><button
-                                                    class="hover:text-red-600 mx-1"><i
-                                                        class="fa-regular fa-trash-can"></i></button></td>
-                                        </tr>
-                                        <tr class="hover:bg-slate-50/40">
-                                            <td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer"
-                                                onclick="switchTab('profil-siswa')">0076610092</td>
-                                            <td class="px-6 py-3.5 flex items-center gap-2.5">
-                                                <div
-                                                    class="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-3xs font-bold">
-                                                    FR</div>Fahri Ramadhan
-                                            </td>
-                                            <td class="px-6 py-3.5">X - MIPA 3</td>
-                                            <td class="px-6 py-3.5">Laki-laki</td>
-                                            <td class="px-6 py-3.5"><span
-                                                    class="bg-amber-50 text-amber-600 text-3xs font-bold px-2 py-0.5 rounded-full">Verifikasi</span>
-                                            </td>
-                                            <td class="px-6 py-3.5 text-center text-slate-400 text-sm"><button
-                                                    class="hover:text-blue-600 mx-1"><i
-                                                        class="fa-regular fa-eye"></i></button><button
-                                                    class="hover:text-amber-500 mx-1"><i
-                                                        class="fa-regular fa-pen-to-square"></i></button><button
-                                                    class="hover:text-red-600 mx-1"><i
-                                                        class="fa-regular fa-trash-can"></i></button></td>
-                                        </tr>
+                                        <!-- Data diisi oleh loadSiswaData() dari API -->
                                     </tbody>
                                 </table>
                             </div>
@@ -600,60 +494,240 @@
                                 jawab.</p>
                         </div>
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs space-y-4">
-                                <div
-                                    class="flex items-center gap-2 border-b border-slate-100 pb-3 font-bold text-slate-900 text-sm">
-                                    <i class="fa-solid fa-link text-blue-600"></i>
-                                    <h4>Tambah Relasi Baru</h4>
-                                </div>
-                                <form onsubmit="handleRelationAjaxSubmit(event)" class="space-y-4">
-                                    <div class="space-y-1"><label
-                                            class="text-3xs font-bold text-slate-400 uppercase">Nama
-                                            Siswa</label><select id="rel-siswa" required
-                                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
-                                            <option value="">Pilih Siswa</option>
-                                            <option value="Arkananta Rayyan">Arkananta Rayyan (NISN: 0098231456)
-                                            </option>
-                                            <option value="Ahmad Faisal">Ahmad Faisal (NISN: 009283741)</option>
-                                        </select></div>
-                                    <div class="space-y-1"><label
-                                            class="text-3xs font-bold text-slate-400 uppercase">Nama Wali</label><select
-                                            id="rel-wali" required
-                                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
-                                            <option value="">Pilih Wali</option>
-                                            <option value="Bambang Wijaya">Bambang Wijaya (bambang@email.com)</option>
-                                            <option value="Drs. Mulyono">Drs. Mulyono (mulyono@email.com)</option>
-                                        </select></div>
-                                    <div class="space-y-1">
-                                        <label class="text-3xs font-bold text-slate-400 uppercase">Tipe Hubungan</label>
-                                        <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold"><label
-                                                class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
-                                                    type="radio" name="rel-type" value="AYAH" checked class="hidden">
-                                                <span>Ayah</span></label><label
-                                                class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
-                                                    type="radio" name="rel-type" value="IBU" class="hidden">
-                                                <span>Ibu</span></label><label
-                                                class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
-                                                    type="radio" name="rel-type" value="WALI" class="hidden">
-                                                <span>Wali</span></label></div>
+                            <!-- Panel Kiri: Tambah Relasi + Tambah Wali Baru -->
+                            <div class="space-y-4">
+
+                                <!-- Card: Tambah Relasi Baru -->
+                                <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs space-y-4">
+                                    <div
+                                        class="flex items-center gap-2 border-b border-slate-100 pb-3 font-bold text-slate-900 text-sm">
+                                        <i class="fa-solid fa-link text-blue-600"></i>
+                                        <h4>Tambah Relasi Baru</h4>
                                     </div>
-                                    <div id="rel-ajax-loader"
-                                        class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-3xs text-amber-800 flex items-center gap-2">
-                                        <i
-                                            class="fa-solid fa-circle-notch animate-spin text-amber-600 text-xs"></i><span>Triggering
-                                            Email API: Menembak notifikasi ke alamat wali...</span>
+
+                                    <!-- Tab: Pilih Existing vs Input Manual -->
+                                    <div class="flex p-0.5 bg-slate-100 rounded-lg text-3xs font-bold gap-0.5">
+                                        <button id="rel-tab-pilih" onclick="switchRelasiTab('pilih')"
+                                            class="flex-1 py-1.5 rounded-md bg-white text-blue-700 shadow-xs transition-all">Pilih
+                                            Data Ada</button>
+                                        <button id="rel-tab-baru" onclick="switchRelasiTab('baru')"
+                                            class="flex-1 py-1.5 rounded-md text-slate-500 transition-all">Input
+                                            Manual</button>
                                     </div>
-                                    <button type="submit" id="rel-submit-btn"
-                                        class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2"><i
-                                            class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Relasi</button>
-                                </form>
-                                <div class="bg-blue-950 text-white p-4 rounded-xl space-y-2">
-                                    <p class="text-2xs font-bold text-blue-300 uppercase">Quick Insights</p>
-                                    <div class="flex justify-between text-2xs"><span>Total Relasi Terdaftar</span><span
-                                            class="font-bold">1,248</span></div>
-                                    <div class="flex justify-between text-2xs"><span>Siswa Belum Berelasi</span><span
-                                            class="font-bold text-amber-400">32 Siswa</span></div>
+
+                                    <!-- Panel: Pilih dari dropdown -->
+                                    <form id="rel-form-pilih" onsubmit="handleRelationAjaxSubmit(event)"
+                                        class="space-y-3">
+                                        <div class="space-y-1"><label
+                                                class="text-3xs font-bold text-slate-400 uppercase">Nama Siswa</label>
+                                            <select id="rel-siswa" required
+                                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                                                <option value="">Pilih Siswa</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1"><label
+                                                class="text-3xs font-bold text-slate-400 uppercase">Nama Wali</label>
+                                            <select id="rel-wali" required
+                                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                                                <option value="">Pilih Wali</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-3xs font-bold text-slate-400 uppercase">Tipe
+                                                Hubungan</label>
+                                            <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
+                                                <label
+                                                    class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
+                                                        type="radio" name="rel-type" value="AYAH" checked
+                                                        class="hidden"><span>Ayah</span></label>
+                                                <label
+                                                    class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
+                                                        type="radio" name="rel-type" value="IBU"
+                                                        class="hidden"><span>Ibu</span></label>
+                                                <label
+                                                    class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
+                                                        type="radio" name="rel-type" value="WALI"
+                                                        class="hidden"><span>Wali</span></label>
+                                            </div>
+                                        </div>
+                                        <div id="rel-ajax-loader"
+                                            class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-3xs text-amber-800 flex items-center gap-2">
+                                            <i
+                                                class="fa-solid fa-circle-notch animate-spin text-amber-600 text-xs"></i><span>Menyimpan
+                                                relasi...</span>
+                                        </div>
+                                        <button type="submit" id="rel-submit-btn"
+                                            class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Relasi
+                                        </button>
+                                    </form>
+
+                                    <!-- Panel: Input Manual -->
+                                    <form id="rel-form-baru" onsubmit="handleRelasiManualSubmit(event)"
+                                        class="hidden space-y-3">
+                                        <p
+                                            class="text-3xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 font-semibold">
+                                            <i class="fa-solid fa-circle-info mr-1"></i>Siswa dan Wali baru akan dibuat
+                                            otomatis lalu langsung direlasikan.
+                                        </p>
+                                        <p
+                                            class="text-3xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-1">
+                                            Data Siswa</p>
+                                        <div class="space-y-1"><label
+                                                class="text-3xs font-bold text-slate-400 uppercase">NISN <span
+                                                    class="text-red-500">*</span></label>
+                                            <input type="text" id="new-siswa-nisn" required
+                                                placeholder="Contoh: 0098231456"
+                                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                        </div>
+                                        <div class="space-y-1"><label
+                                                class="text-3xs font-bold text-slate-400 uppercase">Nama Siswa <span
+                                                    class="text-red-500">*</span></label>
+                                            <input type="text" id="new-siswa-nama" required
+                                                placeholder="Nama lengkap siswa"
+                                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Kelas <span
+                                                        class="text-red-500">*</span></label>
+                                                <input type="text" id="new-siswa-kelas" required
+                                                    placeholder="X - MIPA 1"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                            </div>
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Jenis
+                                                    Kelamin</label>
+                                                <select id="new-siswa-jk"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                                                    <option value="Laki-laki">Laki-laki</option>
+                                                    <option value="Perempuan">Perempuan</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <p
+                                            class="text-3xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-1 pt-1">
+                                            Data Wali</p>
+                                        <div class="space-y-1"><label
+                                                class="text-3xs font-bold text-slate-400 uppercase">Nama Wali <span
+                                                    class="text-red-500">*</span></label>
+                                            <input type="text" id="new-wali-nama" required
+                                                placeholder="Nama lengkap wali"
+                                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Email</label>
+                                                <input type="email" id="new-wali-email" placeholder="email@contoh.com"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                            </div>
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Telepon</label>
+                                                <input type="text" id="new-wali-telepon" placeholder="08xxxxxxxxxx"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Pekerjaan</label>
+                                                <input type="text" id="new-wali-pekerjaan"
+                                                    placeholder="PNS / Wiraswasta"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                            </div>
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Tipe
+                                                    Hubungan</label>
+                                                <select id="new-rel-tipe"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                                                    <option value="AYAH">Ayah</option>
+                                                    <option value="IBU">Ibu</option>
+                                                    <option value="WALI">Wali</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div id="rel-manual-loader"
+                                            class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-3xs text-amber-800 flex items-center gap-2">
+                                            <i
+                                                class="fa-solid fa-circle-notch animate-spin text-amber-600 text-xs"></i><span>Menyimpan
+                                                data...</span>
+                                        </div>
+                                        <button type="submit" id="rel-manual-btn"
+                                            class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Semua Data
+                                        </button>
+                                    </form>
+
+                                    <div class="bg-blue-950 text-white p-4 rounded-xl space-y-2">
+                                        <p class="text-2xs font-bold text-blue-300 uppercase">Quick Insights</p>
+                                        <div class="flex justify-between text-2xs"><span>Total Relasi
+                                                Terdaftar</span><span id="qi-total-relasi" class="font-bold">-</span>
+                                        </div>
+                                        <div class="flex justify-between text-2xs"><span>Siswa Belum
+                                                Berelasi</span><span id="qi-siswa-tanpa-relasi"
+                                                class="font-bold text-amber-400">-</span></div>
+                                    </div>
                                 </div>
+
+                                <!-- Card: Tambah Wali Saja -->
+                                <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs space-y-4">
+                                    <button onclick="toggleTambahWaliPanel()"
+                                        class="w-full flex items-center justify-between font-bold text-slate-900 text-sm">
+                                        <span class="flex items-center gap-2"><i
+                                                class="fa-solid fa-user-plus text-purple-600"></i> Tambah Wali
+                                            Baru</span>
+                                        <i id="tambah-wali-chevron"
+                                            class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform"></i>
+                                    </button>
+                                    <div id="tambah-wali-panel" class="hidden space-y-3 border-t border-slate-100 pt-4">
+                                        <form onsubmit="handleTambahWaliSubmit(event)" class="space-y-3">
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Nama Lengkap
+                                                    <span class="text-red-500">*</span></label>
+                                                <input type="text" id="wali-only-nama" required placeholder="Nama wali"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div class="space-y-1"><label
+                                                        class="text-3xs font-bold text-slate-400 uppercase">Email</label>
+                                                    <input type="email" id="wali-only-email"
+                                                        placeholder="email@contoh.com"
+                                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                                </div>
+                                                <div class="space-y-1"><label
+                                                        class="text-3xs font-bold text-slate-400 uppercase">Telepon</label>
+                                                    <input type="text" id="wali-only-telepon" placeholder="08xxxxxxxxxx"
+                                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div class="space-y-1"><label
+                                                        class="text-3xs font-bold text-slate-400 uppercase">Pekerjaan</label>
+                                                    <input type="text" id="wali-only-pekerjaan" placeholder="Pekerjaan"
+                                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500">
+                                                </div>
+                                                <div class="space-y-1"><label
+                                                        class="text-3xs font-bold text-slate-400 uppercase">Status</label>
+                                                    <select id="wali-only-status"
+                                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                                                        <option value="Terverifikasi">Terverifikasi</option>
+                                                        <option value="Pending">Pending</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1"><label
+                                                    class="text-3xs font-bold text-slate-400 uppercase">Alamat</label>
+                                                <textarea id="wali-only-alamat" rows="2" placeholder="Alamat lengkap"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 resize-none"></textarea>
+                                            </div>
+                                            <button type="submit"
+                                                class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-user-plus text-2xs"></i> Simpan Data Wali
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
                             </div>
                             <div
                                 class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
@@ -719,18 +793,30 @@
                         <div
                             class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex flex-col sm:flex-row gap-4 items-end text-2xs font-bold text-slate-500">
                             <div class="space-y-1 w-full sm:w-48">
-                                <p class="uppercase tracking-wider">Filter Kelas</p><select
+                                <p class="uppercase tracking-wider">Filter Kelas</p><select id="laporan-filter-kelas"
                                     class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium">
-                                    <option>Semua Kelas</option>
+                                    <option value="">Semua Kelas</option>
                                 </select>
                             </div>
-                            <div class="space-y-1 w-full sm:w-64">
+                            <div class="space-y-1 w-full sm:w-auto flex-1 max-w-md">
                                 <p class="uppercase tracking-wider">Rentang Tanggal</p>
-                                <div class="relative"><span
-                                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i
-                                            class="fa-regular fa-calendar"></i></span><input type="text"
-                                        class="w-full pl-8 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium"
-                                        value="01 Jan 2026 - 31 Mar 2026"></div>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative w-full">
+                                        <input type="date" id="laporan-tgl-dari"
+                                            class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium text-slate-600 cursor-pointer">
+                                    </div>
+                                    <span class="text-slate-400 font-bold text-xs">s/d</span>
+                                    <div class="relative w-full">
+                                        <input type="date" id="laporan-tgl-sampai"
+                                            class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium text-slate-600 cursor-pointer">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full sm:w-auto">
+                                <button onclick="filterLaporan()"
+                                    class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-xl transition-all flex items-center justify-center gap-2 font-bold shadow-sm">
+                                    <i class="fa-solid fa-filter"></i> Filter
+                                </button>
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
@@ -787,7 +873,7 @@
                                 </div>
                                 <button
                                     class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-xs"
-                                    onclick="switchTab('profil-siswa')"><i class="fa-regular fa-pen-to-square mr-1"></i>
+                                    onclick="openUpdateProfilWali()"><i class="fa-regular fa-pen-to-square mr-1"></i>
                                     Update Profil</button>
                             </div>
                             <div
