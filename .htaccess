@@ -1,0 +1,6 @@
+# EduGuardian - Apache Configuration
+# Prioritaskan index.html (versi baru SPA) di atas index.php (versi lama)
+DirectoryIndex index.html index.php
+
+# Aktifkan mod_rewrite
+Options -Indexes

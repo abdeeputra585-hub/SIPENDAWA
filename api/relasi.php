@@ -1,4 +1,13 @@
 <?php
+/**
+ * api/relasi.php
+ * GET    — semua relasi (semua role)
+ * POST   — tambah relasi (admin only)
+ * PUT    — edit relasi   (admin only)
+ * DELETE — hapus relasi  (admin only)
+ *
+ * BUG FIX: Ganti raw query dengan prepared statement untuk cek siswa & wali
+ */
 
 require_once __DIR__ . '/config.php';
 
@@ -6,34 +15,58 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
 
+    // ── GET: ambil semua relasi ───────────────────────────────────────────
     case 'GET':
-        $sql = "SELECT r.id, r.tipe, r.status, r.created_at,
-                       s.id as siswa_id, s.nisn, s.nama as siswa_nama,
-                       w.id as wali_id, w.nama as wali_nama, w.email as wali_email
-                FROM relasi r
-                JOIN siswa s ON r.siswa_id = s.id
-                JOIN wali w ON r.wali_id = w.id
-                ORDER BY r.created_at DESC";
-        $result = $conn->query($sql);
+        $authUser = optionalAuth();
+
+        // Jika parent, hanya tampilkan relasi siswa yang terhubung ke mereka
+        if ($authUser && $authUser['role'] === 'parent') {
+            $sql = "SELECT r.id, r.tipe, r.status, r.created_at,
+                           s.id as siswa_id, s.nisn, s.nama as siswa_nama,
+                           w.id as wali_id, w.nama as wali_nama, w.email as wali_email
+                    FROM relasi r
+                    JOIN siswa s ON r.siswa_id = s.id
+                    JOIN wali w ON r.wali_id = w.id
+                    WHERE w.user_id = ?
+                    ORDER BY r.created_at DESC";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $authUser['user_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
+            $sql    = "SELECT r.id, r.tipe, r.status, r.created_at,
+                              s.id as siswa_id, s.nisn, s.nama as siswa_nama,
+                              w.id as wali_id, w.nama as wali_nama, w.email as wali_email
+                       FROM relasi r
+                       JOIN siswa s ON r.siswa_id = s.id
+                       JOIN wali w ON r.wali_id = w.id
+                       ORDER BY r.created_at DESC";
+            $result = $conn->query($sql);
+        }
 
         $relasiList = [];
         while ($row = $result->fetch_assoc()) {
             $relasiList[] = $row;
         }
 
-        $siswaTanpaRelasi = $conn->query("SELECT COUNT(*) as t FROM siswa WHERE id NOT IN (SELECT DISTINCT siswa_id FROM relasi)")->fetch_assoc()['t'];
+        $siswaTanpaRelasi = $conn->query(
+            "SELECT COUNT(*) as t FROM siswa WHERE id NOT IN (SELECT DISTINCT siswa_id FROM relasi)"
+        )->fetch_assoc()['t'];
 
         sendResponse([
             'success' => true,
-            'data' => $relasiList,
-            'stats' => [
-                'total_relasi' => count($relasiList),
+            'data'    => $relasiList,
+            'stats'   => [
+                'total_relasi'       => count($relasiList),
                 'siswa_tanpa_relasi' => (int)$siswaTanpaRelasi
             ]
         ]);
         break;
 
+    // ── POST: tambah relasi baru (admin only) ─────────────────────────────
     case 'POST':
+        requireAuth(['admin']);
+
         $input = getJsonInput();
 
         if (empty($input['siswa_id']) || empty($input['wali_id']) || empty($input['tipe'])) {
@@ -41,44 +74,68 @@ switch ($method) {
         }
 
         $siswaId = (int)$input['siswa_id'];
-        $waliId = (int)$input['wali_id'];
-        $tipe = $conn->real_escape_string($input['tipe']);
+        $waliId  = (int)$input['wali_id'];
+        $tipe    = strtoupper(trim($input['tipe']));
 
-        $cekSiswa = $conn->query("SELECT id, nama FROM siswa WHERE id = $siswaId");
-        $cekWali = $conn->query("SELECT id, nama FROM wali WHERE id = $waliId");
+        // Validasi tipe
+        if (!in_array($tipe, ['AYAH', 'IBU', 'WALI'])) {
+            sendResponse(['success' => false, 'message' => 'Tipe harus AYAH, IBU, atau WALI'], 400);
+        }
 
-        if ($cekSiswa->num_rows === 0) {
+        // FIX: pakai prepared statement untuk validasi
+        $cekSiswaStmt = $conn->prepare("SELECT id, nama FROM siswa WHERE id = ?");
+        $cekSiswaStmt->bind_param("i", $siswaId);
+        $cekSiswaStmt->execute();
+        $cekSiswaRes = $cekSiswaStmt->get_result();
+
+        if ($cekSiswaRes->num_rows === 0) {
             sendResponse(['success' => false, 'message' => 'Siswa tidak ditemukan'], 404);
         }
-        if ($cekWali->num_rows === 0) {
+        $siswaData = $cekSiswaRes->fetch_assoc();
+        $cekSiswaStmt->close();
+
+        $cekWaliStmt = $conn->prepare("SELECT id, nama FROM wali WHERE id = ?");
+        $cekWaliStmt->bind_param("i", $waliId);
+        $cekWaliStmt->execute();
+        $cekWaliRes = $cekWaliStmt->get_result();
+
+        if ($cekWaliRes->num_rows === 0) {
             sendResponse(['success' => false, 'message' => 'Wali tidak ditemukan'], 404);
         }
+        $waliData = $cekWaliRes->fetch_assoc();
+        $cekWaliStmt->close();
 
-        $siswaData = $cekSiswa->fetch_assoc();
-        $waliData = $cekWali->fetch_assoc();
+        // Cek duplikat relasi
+        $dupStmt = $conn->prepare("SELECT id FROM relasi WHERE siswa_id = ? AND wali_id = ? AND tipe = ?");
+        $dupStmt->bind_param("iis", $siswaId, $waliId, $tipe);
+        $dupStmt->execute();
+        if ($dupStmt->get_result()->num_rows > 0) {
+            sendResponse(['success' => false, 'message' => 'Relasi ini sudah ada di database'], 409);
+        }
+        $dupStmt->close();
 
-        $sql = "INSERT INTO relasi (siswa_id, wali_id, tipe, status) VALUES (?, ?, ?, 'Pending')";
+        $sql  = "INSERT INTO relasi (siswa_id, wali_id, tipe, status) VALUES (?, ?, ?, 'Pending')";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("iis", $siswaId, $waliId, $tipe);
 
         if ($stmt->execute()) {
             $judulNotif = "Relasi Baru Ditambahkan";
-            $pesanNotif = "Relasi baru antara siswa {$siswaData['nama']} dengan wali {$waliData['nama']} ({$tipe}) telah ditambahkan.";
-            $sqlNotif = "INSERT INTO notifikasi (judul, pesan, tipe, user_id) VALUES (?, ?, 'info', 1)";
-            $stmtNotif = $conn->prepare($sqlNotif);
+            $pesanNotif = "Relasi baru: siswa {$siswaData['nama']} dengan wali {$waliData['nama']} ({$tipe}).";
+            $sqlNotif   = "INSERT INTO notifikasi (judul, pesan, tipe, user_id) VALUES (?, ?, 'info', 1)";
+            $stmtNotif  = $conn->prepare($sqlNotif);
             $stmtNotif->bind_param("ss", $judulNotif, $pesanNotif);
             $stmtNotif->execute();
             $stmtNotif->close();
 
             sendResponse([
-                'success' => true,
-                'message' => 'Relasi berhasil ditambahkan',
-                'data' => [
-                    'id' => $conn->insert_id,
+                'success'    => true,
+                'message'    => 'Relasi berhasil ditambahkan',
+                'data'       => [
+                    'id'         => $conn->insert_id,
                     'siswa_nama' => $siswaData['nama'],
-                    'wali_nama' => $waliData['nama'],
-                    'tipe' => $tipe,
-                    'status' => 'Pending'
+                    'wali_nama'  => $waliData['nama'],
+                    'tipe'       => $tipe,
+                    'status'     => 'Pending'
                 ]
             ], 201);
         } else {
@@ -87,7 +144,10 @@ switch ($method) {
         $stmt->close();
         break;
 
+    // ── PUT: update relasi (admin only) ──────────────────────────────────
     case 'PUT':
+        requireAuth(['admin']);
+
         if (!isset($_GET['id'])) {
             sendResponse(['success' => false, 'message' => 'ID relasi diperlukan'], 400);
         }
@@ -99,10 +159,10 @@ switch ($method) {
         $types  = '';
         $values = [];
 
-        if (isset($input['tipe']) && in_array($input['tipe'], ['AYAH', 'IBU', 'WALI'])) {
+        if (isset($input['tipe']) && in_array(strtoupper($input['tipe']), ['AYAH', 'IBU', 'WALI'])) {
             $fields[] = "tipe = ?";
             $types   .= 's';
-            $values[] = $input['tipe'];
+            $values[] = strtoupper($input['tipe']);
         }
 
         if (isset($input['status']) && in_array($input['status'], ['Terverifikasi', 'Pending'])) {
@@ -139,13 +199,16 @@ switch ($method) {
         $stmt->close();
         break;
 
+    // ── DELETE: hapus relasi (admin only) ────────────────────────────────
     case 'DELETE':
+        requireAuth(['admin']);
+
         if (!isset($_GET['id'])) {
             sendResponse(['success' => false, 'message' => 'ID relasi diperlukan'], 400);
         }
 
-        $id = (int)$_GET['id'];
-        $sql = "DELETE FROM relasi WHERE id = ?";
+        $id   = (int)$_GET['id'];
+        $sql  = "DELETE FROM relasi WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $id);
 

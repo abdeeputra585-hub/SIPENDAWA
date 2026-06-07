@@ -11,7 +11,7 @@ class Env {
     public static function load($path = null) {
         if (self::$loaded) return;
         
-        $envFile = $path ?? dirname(__DIR__) . '/.env';
+        $envFile = $path ?? __DIR__ . '/.env';
         
         if (!file_exists($envFile)) {
             if (getenv('APP_ENV') === 'development') {

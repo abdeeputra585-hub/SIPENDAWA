@@ -1,29 +1,42 @@
 
-const API_BASE = 'api';
+const API_BASE = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/api';
 
 let appState = {
     currentRole: 'admin',
     currentTab: 'admin-dashboard',
-    currentUser: null
+    currentUser: null,
+    token: localStorage.getItem('eduguardian_token') || null
 };
+
+/**
+ * Helper: header standar dengan Authorization JWT token
+ * Dipakai di semua fetch POST/PUT/DELETE
+ */
+function authHeaders(extraHeaders = {}) {
+    const headers = { 'Content-Type': 'application/json', ...extraHeaders };
+    if (appState.token) headers['Authorization'] = 'Bearer ' + appState.token;
+    return headers;
+}
 
 const navigationMenus = {
     admin: [
-        { id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
-        { id: 'admin-siswa', label: 'Kelola Siswa', icon: 'fa-user-graduate' },
-        { id: 'admin-relasi', label: 'Relasi Data', icon: 'fa-link' },
-        { id: 'admin-laporan', label: 'Laporan', icon: 'fa-file-invoice-dollar' },
-        { id: 'notifikasi', label: 'Notifikasi', icon: 'fa-bell', badge: 0 }
+        { id: 'admin-dashboard',   label: 'Dashboard',       icon: 'fa-chart-pie' },
+        { id: 'admin-siswa',       label: 'Kelola Siswa',    icon: 'fa-user-graduate' },
+        { id: 'admin-relasi',      label: 'Relasi Data',     icon: 'fa-link' },
+        { id: 'admin-pengumuman',  label: 'Pengumuman',      icon: 'fa-bullhorn' },
+        { id: 'admin-laporan',     label: 'Laporan',         icon: 'fa-file-invoice-dollar' },
+        { id: 'notifikasi',        label: 'Notifikasi',      icon: 'fa-bell', badge: 0 }
     ],
     kepala_sekolah: [
-        { id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
-        { id: 'admin-laporan', label: 'Laporan', icon: 'fa-file-invoice-dollar' },
-        { id: 'notifikasi', label: 'Notifikasi', icon: 'fa-bell', badge: 0 }
+        { id: 'admin-dashboard',   label: 'Dashboard',       icon: 'fa-chart-pie' },
+        { id: 'admin-pengumuman',  label: 'Pengumuman',      icon: 'fa-bullhorn' },
+        { id: 'admin-laporan',     label: 'Laporan',         icon: 'fa-file-invoice-dollar' },
+        { id: 'notifikasi',        label: 'Notifikasi',      icon: 'fa-bell', badge: 0 }
     ],
     parent: [
-        { id: 'parent-portal', label: 'Dashboard Portal', icon: 'fa-chart-line' },
-        { id: 'profil-siswa', label: 'Profil Anak', icon: 'fa-user-graduate' },
-        { id: 'notifikasi', label: 'Pusat Notifikasi', icon: 'fa-bell', badge: 0 }
+        { id: 'parent-portal',  label: 'Dashboard Portal', icon: 'fa-chart-line' },
+        { id: 'profil-siswa',   label: 'Profil Anak',      icon: 'fa-user-graduate' },
+        { id: 'notifikasi',     label: 'Pusat Notifikasi', icon: 'fa-bell', badge: 0 }
     ]
 };
 
@@ -35,7 +48,156 @@ const userCredentialsMock = {
 
 window.addEventListener('DOMContentLoaded', () => {
     showRoute('login');
+    // Inisialisasi Google Sign-In setelah library dimuat
+    initGoogleSignIn();
 });
+
+// ======== GOOGLE SIGN-IN ========
+
+/**
+ * Inisialisasi Google Identity Services
+ * Dipanggil saat DOMContentLoaded
+ */
+function initGoogleSignIn() {
+    // Cek apakah library Google sudah dimuat dan Client ID sudah dikonfigurasi
+    if (typeof google === 'undefined') {
+        // Library belum dimuat — coba lagi dalam 1 detik
+        setTimeout(initGoogleSignIn, 1000);
+        return;
+    }
+
+    const clientId = typeof GOOGLE_CLIENT_ID !== 'undefined' ? GOOGLE_CLIENT_ID : '';
+
+    if (!clientId || clientId.includes('GANTI_DENGAN')) {
+        // Client ID belum diisi — tampilkan pesan di tombol
+        const btn = document.getElementById('google-login-btn');
+        if (btn) {
+            btn.title = 'Isi GOOGLE_CLIENT_ID di file config.js terlebih dahulu';
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.onclick = () => {
+                showGoogleError('⚙ Google Client ID belum dikonfigurasi. Buka file config.js dan isi GOOGLE_CLIENT_ID Anda.');
+            };
+        }
+        return;
+    }
+
+    try {
+        google.accounts.id.initialize({
+            client_id:        clientId,
+            callback:         handleGoogleSignIn,
+            auto_select:      false,
+            cancel_on_tap_outside: true,
+            ux_mode:          'popup'
+        });
+        console.log('✅ Google Sign-In berhasil diinisialisasi');
+    } catch (err) {
+        console.warn('Google Sign-In init error:', err);
+    }
+}
+
+/**
+ * Dipanggil saat tombol "Masuk dengan Google" diklik
+ */
+function signInWithGoogle() {
+    const clientId = typeof GOOGLE_CLIENT_ID !== 'undefined' ? GOOGLE_CLIENT_ID : '';
+
+    if (!clientId || clientId.includes('GANTI_DENGAN')) {
+        showGoogleError('⚙ Google Client ID belum dikonfigurasi. Buka file config.js dan isi dengan Client ID Anda dari Google Cloud Console.');
+        return;
+    }
+
+    if (typeof google === 'undefined') {
+        showGoogleError('⚠ Library Google belum dimuat. Periksa koneksi internet Anda.');
+        return;
+    }
+
+    setGoogleBtnLoading(true);
+    hideGoogleError();
+
+    try {
+        google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed()) {
+                setGoogleBtnLoading(false);
+                const reason = notification.getNotDisplayedReason();
+                if (reason === 'suppressed_by_user') {
+                    showGoogleError('Popup Google diblokir browser. Klik "Masuk dengan Google" sekali lagi atau izinkan popup di browser Anda.');
+                } else {
+                    showGoogleError('Google Sign-In tidak dapat ditampilkan (' + reason + '). Pastikan Client ID sudah benar.');
+                }
+            } else if (notification.isSkippedMoment()) {
+                setGoogleBtnLoading(false);
+            }
+        });
+    } catch (err) {
+        setGoogleBtnLoading(false);
+        showGoogleError('Terjadi kesalahan: ' + err.message);
+    }
+}
+
+/**
+ * Callback dari Google Identity Services setelah user memilih akun
+ * response.credential = ID Token dari Google
+ */
+async function handleGoogleSignIn(response) {
+    setGoogleBtnLoading(true);
+    hideGoogleError();
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/google.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_token: response.credential })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            // Simpan token
+            appState.token = data.token;
+            localStorage.setItem('eduguardian_token', data.token);
+            appState.currentUser = data.data;
+
+            showToast('✅ ' + data.message, 'success');
+            loginAs(data.data.role, data.data);
+        } else {
+            showGoogleError('⚠ ' + (data.message || 'Login Google gagal. Coba lagi.'));
+        }
+    } catch (err) {
+        console.error('Google login error:', err);
+        showGoogleError('⚠ Gagal terhubung ke server. Pastikan Laragon aktif.');
+    } finally {
+        setGoogleBtnLoading(false);
+    }
+}
+
+/** Tampilkan/sembunyikan loading state di tombol Google */
+function setGoogleBtnLoading(loading) {
+    const btn     = document.getElementById('google-login-btn');
+    const text    = document.getElementById('google-btn-text');
+    const spinner = document.getElementById('google-btn-spinner');
+    if (!btn) return;
+    btn.disabled = loading;
+    if (text)    text.textContent = loading ? 'Memproses...' : 'Masuk dengan Google';
+    if (spinner) spinner.classList.toggle('hidden', !loading);
+}
+
+/** Tampilkan pesan error di bawah tombol Google */
+function showGoogleError(msg) {
+    const el = document.getElementById('google-error-msg');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 7000);
+}
+
+/** Sembunyikan pesan error Google */
+function hideGoogleError() {
+    const el = document.getElementById('google-error-msg');
+    if (el) el.classList.add('hidden');
+}
+
+
 
 function showRoute(routeId) {
     document.querySelectorAll('.route-view').forEach(view => view.classList.add('hidden'));
@@ -79,6 +241,11 @@ async function executeLogin(event) {
 
         if (data.success) {
             appState.currentUser = data.data;
+            // Simpan JWT token ke state dan localStorage
+            if (data.token) {
+                appState.token = data.token;
+                localStorage.setItem('eduguardian_token', data.token);
+            }
             loginAs(data.data.role, data.data);
         } else {
             alert('Login Gagal: ' + data.message);
@@ -217,11 +384,14 @@ function switchTab(tabId) {
     }
 
     // Load data dari API sesuai tab
-    if (tabId === 'admin-dashboard') loadDashboardData();
-    if (tabId === 'admin-siswa') { loadSiswaData(); initKelasFilter(); }
-    if (tabId === 'admin-relasi') { loadRelasiData(); setTimeout(initRelasiFilter, 300); }
-    if (tabId === 'admin-laporan') { loadLaporanData(); setTimeout(initLaporanKelasFilter, 300); }
-    if (tabId === 'notifikasi') loadNotifikasiData();
+    if (tabId === 'admin-dashboard')  loadDashboardData();
+    if (tabId === 'admin-siswa')      { loadSiswaData(); initKelasFilter(); }
+    if (tabId === 'admin-relasi')     { loadRelasiData(); setTimeout(initRelasiFilter, 300); }
+    if (tabId === 'admin-laporan')    { loadLaporanData(); setTimeout(initLaporanKelasFilter, 300); }
+    if (tabId === 'admin-pengumuman') { loadPengumuman(); }
+    if (tabId === 'notifikasi')       loadNotifikasiData();
+    if (tabId === 'parent-portal')    { loadParentPortal(); loadPengumumanWali(); }
+    if (tabId === 'profil-siswa')     { loadProfilSiswa(); }
 }
 
 // ======== LOAD DASHBOARD DATA ========
@@ -279,7 +449,6 @@ async function loadDashboardData() {
                 aktivitas.data.forEach(a => {
                     const colorMap = { info: 'blue', success: 'emerald', warning: 'amber', error: 'red' };
                     const dotColor = colorMap[a.tipe] || 'blue';
-                    // Determine target page based on content
                     let targetTab = 'notifikasi';
                     const judul = a.judul.toLowerCase();
                     if (judul.includes('relasi')) targetTab = 'admin-relasi';
@@ -287,9 +456,9 @@ async function loadDashboardData() {
                     else if (judul.includes('sinkron') || judul.includes('dapodik')) targetTab = 'admin-siswa';
                     else if (judul.includes('verifikasi')) targetTab = 'notifikasi';
                     else if (judul.includes('laporan')) targetTab = 'admin-laporan';
+                    else if (judul.includes('pengumuman')) targetTab = 'admin-pengumuman';
 
                     const timeAgo = getTimeAgo(a.created_at);
-
                     container.innerHTML += `<div class="relative mb-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="switchTab('${targetTab}')">
                         <span class="absolute -left-6 w-3 h-3 bg-${dotColor}-500 rounded-full border-2 border-white mt-0.5"></span>
                         <p class="font-bold text-slate-900">${a.judul}</p>
@@ -298,6 +467,11 @@ async function loadDashboardData() {
                 });
             }
         }
+
+        // Load charts & antrian verifikasi
+        await loadDashboardCharts();
+        if (appState.currentRole === 'admin') loadAntrianVerifikasi();
+
     } catch (err) {
         console.warn('Dashboard API belum aktif:', err);
     }
@@ -349,13 +523,27 @@ async function loadSiswaData() {
 
                 tbody.innerHTML += `<tr class="hover:bg-slate-50/40">
                     <td class="px-6 py-3.5 text-blue-600 font-bold hover:underline cursor-pointer" onclick="viewSiswa(${s.id})">${s.nisn}</td>
-                    <td class="px-6 py-3.5 flex items-center gap-2.5">
-                        <div class="w-6 h-6 bg-${color}-100 text-${color}-700 rounded-full flex items-center justify-center text-3xs font-bold">${initials}</div>${s.nama}
+                    <td class="px-6 py-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="relative group cursor-pointer" onclick="openUploadFoto('siswa',${s.id},'${s.nama.replace(/'/g,"\\'")}')"
+                                title="Upload foto siswa">
+                                ${s.foto
+                                    ? `<img src="${s.foto}" class="w-7 h-7 rounded-full object-cover border border-slate-200">`
+                                    : `<div class="w-7 h-7 bg-${color}-100 text-${color}-700 rounded-full flex items-center justify-center text-3xs font-bold">${initials}</div>`
+                                }
+                                <div class="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <i class="fa-solid fa-camera text-white text-3xs"></i>
+                                </div>
+                            </div>
+                            ${s.nama}
+                        </div>
                     </td>
                     <td class="px-6 py-3.5">${s.kelas}</td>
                     <td class="px-6 py-3.5">${s.jenis_kelamin}</td>
                     <td class="px-6 py-3.5"><span class="${statusClass} text-3xs font-bold px-2 py-0.5 rounded-full">${s.status}</span></td>
                     <td class="px-6 py-3.5 text-center text-slate-400 text-sm">
+                        <button class="hover:text-blue-600 mx-1" title="Upload Foto" onclick="openUploadFoto('siswa',${s.id},'${s.nama.replace(/'/g,"\\'")}')"><i class="fa-solid fa-camera text-xs"></i></button>
+                        <button class="hover:text-green-600 mx-1" title="Hubungkan dengan Wali" onclick="openHubungkanWaliModal(${s.id},'${s.nama.replace(/'/g,"\\'")}')"><i class="fa-solid fa-link text-xs"></i></button>
                         <button class="hover:text-blue-600 mx-1" onclick="viewSiswa(${s.id})"><i class="fa-regular fa-eye"></i></button>
                         <button class="hover:text-amber-500 mx-1" onclick="editSiswa(${s.id})"><i class="fa-regular fa-pen-to-square"></i></button>
                         <button class="hover:text-red-600 mx-1" onclick="deleteSiswa(${s.id})"><i class="fa-regular fa-trash-can"></i></button>
@@ -372,12 +560,19 @@ async function loadSiswaData() {
 async function deleteSiswa(id) {
     if (!confirm('Apakah Anda yakin ingin menghapus data siswa ini?')) return;
     try {
-        const res = await fetch(`${API_BASE}/siswa.php?id=${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/siswa.php?id=${id}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
         const data = await res.json();
-        alert(data.message);
-        if (data.success) loadSiswaData();
+        if (data.success) {
+            showToast('\u2705 Siswa berhasil dihapus!', 'success');
+            loadSiswaData();
+        } else {
+            showToast('\u26a0 ' + data.message, 'error');
+        }
     } catch (err) {
-        alert('Gagal menghapus siswa');
+        showToast('\u26a0 Gagal menghapus siswa', 'error');
     }
 }
 
@@ -451,12 +646,19 @@ async function loadRelasiData() {
 async function deleteRelasi(id) {
     if (!confirm('Apakah Anda yakin ingin menghapus relasi ini?')) return;
     try {
-        const res = await fetch(`${API_BASE}/relasi.php?id=${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/relasi.php?id=${id}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
         const data = await res.json();
-        alert(data.message);
-        if (data.success) loadRelasiData();
+        if (data.success) {
+            showToast('\u2705 Relasi berhasil dihapus!', 'success');
+            loadRelasiData();
+        } else {
+            showToast('\u26a0 ' + data.message, 'error');
+        }
     } catch (err) {
-        alert('Gagal menghapus relasi');
+        showToast('\u26a0 Gagal menghapus relasi', 'error');
     }
 }
 
@@ -509,7 +711,7 @@ async function submitEditRelasi(id) {
     try {
         const res = await fetch(`${API_BASE}/relasi.php?id=${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ tipe, status })
         });
         const data = await res.json();
@@ -554,7 +756,10 @@ async function deleteWaliFromDashboard(id, nama) {
     document.getElementById('wali-quick-menu')?.remove();
     if (!confirm(`Hapus wali "${nama}" dari database?`)) return;
     try {
-        const res = await fetch(`${API_BASE}/wali.php?id=${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/wali.php?id=${id}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
         const data = await res.json();
         if (data.success) {
             showToast('\u2705 Data wali berhasil dihapus!', 'success');
@@ -586,7 +791,7 @@ async function handleRelationAjaxSubmit(event) {
     try {
         const res = await fetch(`${API_BASE}/relasi.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ siswa_id: siswaId, wali_id: waliId, tipe: tipe })
         });
         const data = await res.json();
@@ -597,22 +802,22 @@ async function handleRelationAjaxSubmit(event) {
             ajaxLoader.classList.add('hidden');
 
             if (data.success) {
-                alert('Data Relasi Baru Berhasil Disimpan ke Database! Notifikasi telah dipicu otomatis.');
+                showToast('\u2705 Relasi berhasil disimpan ke database!', 'success');
                 loadRelasiData();
                 document.getElementById('rel-siswa').value = '';
                 document.getElementById('rel-wali').value = '';
             } else {
-                alert('Gagal: ' + data.message);
+                showToast('\u26a0 Gagal: ' + data.message, 'error');
             }
-        }, 1500);
+        }, 800);
     } catch (err) {
-        console.warn('API belum aktif, menggunakan mode demo:', err);
+        console.warn('API error:', err);
         setTimeout(() => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Relasi`;
             ajaxLoader.classList.add('hidden');
-            alert('Data Relasi Baru Berhasil Disimpan (Mode Demo).');
-        }, 1500);
+            showToast('\u26a0 Gagal terhubung ke server. Pastikan Laragon aktif.', 'error');
+        }, 800);
     }
 }
 
@@ -885,7 +1090,7 @@ async function submitKehadiran(event, siswaId) {
     try {
         const res = await fetch(`${API_BASE}/kehadiran.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ siswa_id: siswaId, tanggal, status, keterangan })
         });
         const data = await res.json();
@@ -963,7 +1168,7 @@ async function submitEditSiswa(e, id) {
     try {
         const res = await fetch(`${API_BASE}/siswa.php?id=${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({
                 nisn: document.getElementById('edit-nisn').value,
                 nama: document.getElementById('edit-nama').value,
@@ -974,9 +1179,14 @@ async function submitEditSiswa(e, id) {
             })
         });
         const data = await res.json();
-        alert(data.message);
-        if (data.success) { document.getElementById('edit-modal').remove(); loadSiswaData(); }
-    } catch (err) { alert('Gagal menyimpan perubahan'); }
+        if (data.success) {
+            document.getElementById('edit-modal').remove();
+            showToast('\u2705 Data siswa berhasil diperbarui!', 'success');
+            loadSiswaData();
+        } else {
+            showToast('\u26a0 ' + data.message, 'error');
+        }
+    } catch (err) { showToast('\u26a0 Gagal menyimpan perubahan', 'error'); }
 }
 
 // ======== EXPORT PDF/EXCEL ========
@@ -1056,17 +1266,24 @@ function initLaporanKelasFilter() {
 // ======== MARK NOTIFIKASI AS READ ========
 async function markNotifRead(id, el) {
     try {
-        await fetch(`${API_BASE}/notifikasi.php?id=${id}&mark_read=1`);
+        await fetch(`${API_BASE}/notifikasi.php`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ id: id })
+        });
         if (el) el.classList.add('opacity-60');
     } catch (err) { console.warn('Mark read error:', err); }
 }
 
 // ======== LOGOUT CLEANUP ========
 function performLogout() {
+    // Hapus token dari state dan localStorage
     appState.currentUser = null;
     appState.currentRole = 'admin';
-    appState.currentTab = 'admin-dashboard';
-    document.getElementById('login-password').value = 'password123';
+    appState.currentTab  = 'admin-dashboard';
+    appState.token       = null;
+    localStorage.removeItem('eduguardian_token');
+    document.getElementById('login-password').value = 'password';
     setLoginRole('admin');
     showRoute('login');
 }
@@ -1215,7 +1432,7 @@ async function submitTambahSiswa(e) {
     try {
         const res = await fetch(`${API_BASE}/siswa.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -1287,31 +1504,31 @@ async function handleRelasiManualSubmit(e) {
         // 1. Buat siswa baru
         const siswaRes = await fetch(`${API_BASE}/siswa.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ nisn: siswaNisn, nama: siswaNama, kelas: siswaKelas, jenis_kelamin: siswaJk, status: 'Aktif' })
         });
         const siswaData = await siswaRes.json();
-        if (!siswaData.success) { showToast('⚠ Gagal tambah siswa: ' + siswaData.message, 'error'); reset(); return; }
+        if (!siswaData.success) { showToast('\u26a0 Gagal tambah siswa: ' + siswaData.message, 'error'); reset(); return; }
         const siswaId = siswaData.data.id;
 
         // 2. Buat wali baru
         const waliRes = await fetch(`${API_BASE}/wali.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ nama: waliNama, email: waliEmail, telepon: waliTelp, pekerjaan: waliKerja, status: 'Terverifikasi' })
         });
         const waliData = await waliRes.json();
-        if (!waliData.success) { showToast('⚠ Gagal tambah wali: ' + waliData.message, 'error'); reset(); return; }
+        if (!waliData.success) { showToast('\u26a0 Gagal tambah wali: ' + waliData.message, 'error'); reset(); return; }
         const waliId = waliData.data.id;
 
         // 3. Buat relasi
         const relRes = await fetch(`${API_BASE}/relasi.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({ siswa_id: siswaId, wali_id: waliId, tipe: relTipe })
         });
         const relData = await relRes.json();
-        if (!relData.success) { showToast('⚠ Gagal buat relasi: ' + relData.message, 'error'); reset(); return; }
+        if (!relData.success) { showToast('\u26a0 Gagal buat relasi: ' + relData.message, 'error'); reset(); return; }
 
         showToast('✅ Siswa, Wali, dan Relasi berhasil disimpan ke database!', 'success');
         e.target.reset();
@@ -1344,7 +1561,7 @@ async function handleTambahWaliSubmit(e) {
     try {
         const res = await fetch(`${API_BASE}/wali.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -1483,7 +1700,7 @@ async function submitUpdateProfilWali(event, waliId) {
     try {
         const res = await fetch(`${API_BASE}/wali.php?id=${waliId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -1560,3 +1777,1293 @@ window.addEventListener('DOMContentLoaded', () => {
     // Relasi filter
     setTimeout(initRelasiFilter, 500);
 });
+
+// ============================================================
+// A) CHART.JS DASHBOARD
+// ============================================================
+
+/** Simpan instance chart agar bisa di-destroy sebelum re-render */
+const chartInstances = {};
+
+/**
+ * Load semua data chart dan render ke canvas
+ */
+async function loadDashboardCharts() {
+    if (typeof Chart === 'undefined') return;
+
+    try {
+        const [siswaRes, waliRes, kehadiranRes] = await Promise.all([
+            fetch(`${API_BASE}/dashboard.php?action=chart_siswa`),
+            fetch(`${API_BASE}/dashboard.php?action=chart_wali`),
+            fetch(`${API_BASE}/dashboard.php?action=chart_kehadiran`)
+        ]);
+
+        const siswaData     = await siswaRes.json();
+        const waliData      = await waliRes.json();
+        const kehadiranData = await kehadiranRes.json();
+
+        if (siswaData.success)     renderDonutChart('chart-status-siswa', siswaData.data, 'chart-siswa-total', 'chart-siswa-legend');
+        if (waliData.success)      renderDonutChart('chart-status-wali',  waliData.data,  'chart-wali-total',  'chart-wali-legend');
+        if (kehadiranData.success) renderBarChart('chart-kehadiran', kehadiranData.data);
+
+    } catch (err) {
+        console.warn('Chart data error:', err);
+    }
+}
+
+/** Render donut chart (status siswa / status wali) */
+function renderDonutChart(canvasId, data, totalId, legendId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    // Hapus chart lama jika ada
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+        delete chartInstances[canvasId];
+    }
+
+    const colorPalette = {
+        'Aktif':         '#059669',
+        'Terverifikasi': '#059669',
+        'Verifikasi':    '#D97706',
+        'Pending':       '#D97706',
+        'Ditolak':       '#DC2626',
+        'Alumni':        '#64748B',
+        'Pindah':        '#7C3AED',
+    };
+    const defaultColors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626', '#64748B'];
+
+    const bgColors = data.labels.map((l, i) => colorPalette[l] || defaultColors[i % defaultColors.length]);
+    const total    = data.values.reduce((a, b) => a + b, 0);
+
+    chartInstances[canvasId] = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels:   data.labels,
+            datasets: [{ data: data.values, backgroundColor: bgColors, borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw / total * 100)}%)`
+                    }
+                }
+            }
+        }
+    });
+
+    // Update angka total di tengah
+    const totalEl = document.getElementById(totalId);
+    if (totalEl) totalEl.textContent = total.toLocaleString();
+
+    // Render legend custom
+    const legendEl = document.getElementById(legendId);
+    if (legendEl) {
+        legendEl.innerHTML = data.labels.map((l, i) =>
+            `<span class="flex items-center gap-1" style="color:${bgColors[i]}">
+                <span class="w-2 h-2 rounded-full inline-block" style="background:${bgColors[i]}"></span>
+                ${l}: ${data.values[i]}
+            </span>`
+        ).join('');
+    }
+}
+
+/** Render bar chart (kehadiran bulanan) */
+function renderBarChart(canvasId, data) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+        delete chartInstances[canvasId];
+    }
+
+    chartInstances[canvasId] = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [
+                { label: 'Hadir',    data: data.hadir, backgroundColor: '#059669BB', borderRadius: 4 },
+                { label: 'Izin/Sakit', data: data.izin,  backgroundColor: '#D97706BB', borderRadius: 4 },
+                { label: 'Alpa',     data: data.alpa,  backgroundColor: '#DC2626BB', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8, boxWidth: 10 } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 }, precision: 0 }, beginAtZero: true }
+            }
+        }
+    });
+}
+
+
+// ============================================================
+// B) APPROVE / REJECT VERIFIKASI WALI
+// ============================================================
+
+/** Load antrian verifikasi wali di dashboard */
+async function loadAntrianVerifikasi() {
+    const container = document.getElementById('antrian-verifikasi-list');
+    const badge     = document.getElementById('pending-count-badge');
+    if (!container) return;
+
+    try {
+        const res  = await fetch(`${API_BASE}/dashboard.php?action=antrian_verifikasi`);
+        const data = await res.json();
+
+        if (!data.success) { container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Gagal memuat data</div>'; return; }
+
+        // Update badge
+        if (badge) {
+            badge.textContent = data.total;
+            badge.classList.toggle('hidden', data.total === 0);
+        }
+
+        if (data.data.length === 0) {
+            container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">
+                <i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-2 block"></i>
+                Semua wali sudah terverifikasi!
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = data.data.map(w => `
+            <div class="flex items-center justify-between px-5 py-3 hover:bg-amber-50/50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-bold text-xs shrink-0">
+                        ${w.nama.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                        <p class="font-bold text-xs text-slate-900">${w.nama}</p>
+                        <p class="text-3xs text-slate-400">${w.email || '-'} ${w.telepon ? '• ' + w.telepon : ''}</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="approveWali(${w.id}, '${w.nama.replace(/'/g, "\\'")}')"
+                        class="text-2xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i> Setuju
+                    </button>
+                    <button onclick="rejectWali(${w.id}, '${w.nama.replace(/'/g, "\\'")}')"
+                        class="text-2xs font-bold bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                        <i class="fa-solid fa-xmark"></i> Tolak
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        if (container) container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">API tidak tersedia</div>';
+    }
+}
+
+/** Approve verifikasi wali */
+async function approveWali(id, nama) {
+    if (!confirm(`Setujui verifikasi wali "${nama}"?`)) return;
+    try {
+        const res  = await fetch(`${API_BASE}/wali.php?id=${id}`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({ status: 'Terverifikasi' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(`✅ Wali "${nama}" berhasil diverifikasi!`, 'success');
+            loadAntrianVerifikasi();
+            loadDashboardData();
+        } else {
+            showToast('⚠ ' + data.message, 'error');
+        }
+    } catch (err) {
+        showToast('⚠ Gagal memperbarui status wali', 'error');
+    }
+}
+
+/** Reject / tolak verifikasi wali dengan alasan */
+async function rejectWali(id, nama) {
+    const alasan = prompt(`Alasan penolakan untuk "${nama}" (opsional):`);
+    if (alasan === null) return; // user cancel
+
+    try {
+        const res  = await fetch(`${API_BASE}/wali.php?id=${id}`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({ status: 'Ditolak', catatan: alasan })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(`❌ Pengajuan wali "${nama}" ditolak.`, 'success');
+            loadAntrianVerifikasi();
+        } else {
+            showToast('⚠ ' + data.message, 'error');
+        }
+    } catch (err) {
+        showToast('⚠ Gagal menolak pengajuan', 'error');
+    }
+}
+
+
+// ============================================================
+// C) EXPORT PDF DAN CSV
+// ============================================================
+
+/** Data sementara untuk export */
+let laporanDataCache = [];
+
+// Override loadLaporanData untuk cache hasil ke laporanDataCache
+const _origLoadLaporan = typeof loadLaporanData === 'function' ? loadLaporanData : null;
+
+/** Export laporan ke PDF menggunakan jsPDF + AutoTable */
+async function exportLaporanPDF() {
+    if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
+        showToast('⚠ Library jsPDF belum dimuat. Pastikan terhubung internet.', 'error');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf || { jsPDF: window.jsPDF };
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // Header dokumen
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, 297, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('EduGuardian — Laporan Data Wali Siswa', 14, 13);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Tanggal cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 200, 13);
+
+    // Ambil data dari tabel yang sedang ditampilkan
+    const tbody = document.querySelector('#page-admin-laporan table tbody');
+    const rows  = [];
+
+    if (tbody) {
+        tbody.querySelectorAll('tr').forEach(tr => {
+            const cells = tr.querySelectorAll('td');
+            if (cells.length >= 5) {
+                rows.push([
+                    cells[0]?.innerText?.trim() || '',
+                    cells[1]?.innerText?.trim() || '',
+                    cells[2]?.innerText?.trim() || '',
+                    cells[3]?.innerText?.trim() || '',
+                    cells[4]?.innerText?.trim() || ''
+                ]);
+            }
+        });
+    }
+
+    doc.autoTable({
+        head: [['Nama Wali', 'Siswa Terkait', 'Kelas', 'Hubungan', 'No. Telepon']],
+        body: rows.length > 0 ? rows : [['Tidak ada data', '', '', '', '']],
+        startY: 25,
+        styles:     { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: 14, right: 14 }
+    });
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`Halaman ${i} dari ${pageCount} — EduGuardian School Management System`, 14, doc.internal.pageSize.height - 5);
+    }
+
+    doc.save(`laporan-wali-siswa-${new Date().toISOString().slice(0,10)}.pdf`);
+    showToast('✅ PDF berhasil diunduh!', 'success');
+}
+
+/** Export laporan ke CSV */
+function exportLaporanCSV() {
+    const tbody = document.querySelector('#page-admin-laporan table tbody');
+    if (!tbody) { showToast('⚠ Tidak ada data untuk diexport', 'error'); return; }
+
+    const headers = ['Nama Wali', 'Siswa Terkait', 'Kelas', 'Hubungan', 'No. Telepon'];
+    const rows    = [headers];
+
+    tbody.querySelectorAll('tr').forEach(tr => {
+        const cells = tr.querySelectorAll('td');
+        if (cells.length >= 5) {
+            rows.push([
+                cells[0]?.innerText?.trim() || '',
+                cells[1]?.innerText?.trim() || '',
+                cells[2]?.innerText?.trim() || '',
+                cells[3]?.innerText?.trim() || '',
+                cells[4]?.innerText?.trim() || ''
+            ]);
+        }
+    });
+
+    const csvContent = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `laporan-wali-siswa-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ CSV berhasil diunduh!', 'success');
+}
+
+
+// ============================================================
+// D) PENGUMUMAN / BROADCAST
+// ============================================================
+
+/** Load daftar pengumuman (halaman admin) */
+async function loadPengumuman() {
+    const container = document.getElementById('pengumuman-list');
+    if (!container) return;
+
+    container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400"><i class="fa-solid fa-spinner animate-spin text-base mb-2 block"></i>Memuat...</div>';
+
+    try {
+        const res  = await fetch(`${API_BASE}/pengumuman.php`);
+        const data = await res.json();
+
+        if (!data.success || data.data.length === 0) {
+            container.innerHTML = '<div class="p-8 text-center text-xs text-slate-400"><i class="fa-solid fa-bullhorn text-xl mb-2 block opacity-30"></i>Belum ada pengumuman.</div>';
+            return;
+        }
+
+        const tipeConfig = {
+            info:    { bg: 'bg-blue-50',   border: 'border-blue-200',  icon: 'fa-circle-info',  text: 'text-blue-700',  label: 'Informasi' },
+            penting: { bg: 'bg-red-50',    border: 'border-red-200',   icon: 'fa-circle-exclamation', text: 'text-red-700', label: 'Penting' },
+            warning: { bg: 'bg-amber-50',  border: 'border-amber-200', icon: 'fa-triangle-exclamation', text: 'text-amber-700', label: 'Peringatan' }
+        };
+
+        container.innerHTML = data.data.map(p => {
+            const cfg = tipeConfig[p.tipe] || tipeConfig.info;
+            return `
+            <div class="p-5 hover:bg-slate-50/50 transition-all">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3 flex-1 min-w-0">
+                        <div class="w-8 h-8 ${cfg.bg} ${cfg.text} rounded-xl flex items-center justify-center text-xs shrink-0 mt-0.5">
+                            <i class="fa-solid ${cfg.icon}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                <h5 class="font-bold text-slate-900 text-sm">${p.judul}</h5>
+                                <span class="text-3xs font-bold ${cfg.bg} ${cfg.text} border ${cfg.border} px-1.5 py-0.5 rounded">${cfg.label}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">${p.isi}</p>
+                            <p class="text-3xs text-slate-400 mt-1.5">
+                                <i class="fa-solid fa-user text-2xs"></i> ${p.penulis_nama || 'Admin'}
+                                &nbsp;•&nbsp;
+                                <i class="fa-regular fa-clock text-2xs"></i> ${getTimeAgo(p.created_at)}
+                            </p>
+                        </div>
+                    </div>
+                    ${appState.currentRole === 'admin' ? `
+                    <button onclick="deletePengumuman(${p.id})" title="Hapus pengumuman"
+                        class="text-slate-300 hover:text-red-500 transition-colors shrink-0 mt-0.5">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+    } catch (err) {
+        container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">Gagal memuat pengumuman.</div>';
+    }
+}
+
+/** Buat pengumuman baru (admin) */
+async function submitPengumuman(e) {
+    e.preventDefault();
+    const btn   = document.getElementById('pg-submit-btn');
+    const judul = document.getElementById('pg-judul')?.value?.trim();
+    const isi   = document.getElementById('pg-isi')?.value?.trim();
+    const tipe  = document.getElementById('pg-tipe')?.value || 'info';
+
+    if (!judul || !isi) { showToast('⚠ Judul dan isi wajib diisi', 'error'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-2xs"></i> Mempublikasikan...';
+
+    try {
+        const res  = await fetch(`${API_BASE}/pengumuman.php`, {
+            method:  'POST',
+            headers: authHeaders(),
+            body:    JSON.stringify({ judul, isi, tipe })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast('✅ ' + data.message, 'success');
+            document.getElementById('form-pengumuman')?.reset();
+            loadPengumuman();
+        } else {
+            showToast('⚠ ' + data.message, 'error');
+        }
+    } catch (err) {
+        showToast('⚠ Gagal terhubung ke server', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-2xs"></i> Publikasikan ke Semua';
+    }
+}
+
+/** Hapus pengumuman */
+async function deletePengumuman(id) {
+    if (!confirm('Hapus pengumuman ini?')) return;
+    try {
+        const res  = await fetch(`${API_BASE}/pengumuman.php?id=${id}`, {
+            method: 'DELETE', headers: authHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('✅ Pengumuman dihapus', 'success');
+            loadPengumuman();
+        } else {
+            showToast('⚠ ' + data.message, 'error');
+        }
+    } catch (err) {
+        showToast('⚠ Gagal menghapus pengumuman', 'error');
+    }
+}
+
+/** Load pengumuman di portal wali (read-only) */
+async function loadPengumumanWali() {
+    const container = document.getElementById('pengumuman-wali-list');
+    if (!container) return;
+
+    try {
+        const res  = await fetch(`${API_BASE}/pengumuman.php?limit=5`);
+        const data = await res.json();
+
+        if (!data.success || data.data.length === 0) {
+            container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">Belum ada pengumuman dari sekolah.</div>';
+            return;
+        }
+
+        const tipeConfig = {
+            info:    { bg: 'bg-blue-50', text: 'text-blue-700', icon: 'fa-circle-info' },
+            penting: { bg: 'bg-red-50',  text: 'text-red-700',  icon: 'fa-circle-exclamation' },
+            warning: { bg: 'bg-amber-50', text: 'text-amber-700', icon: 'fa-triangle-exclamation' }
+        };
+
+        container.innerHTML = data.data.map(p => {
+            const cfg = tipeConfig[p.tipe] || tipeConfig.info;
+            return `
+            <div class="px-5 py-4 hover:bg-slate-50 transition-all">
+                <div class="flex items-start gap-3">
+                    <div class="w-7 h-7 ${cfg.bg} ${cfg.text} rounded-lg flex items-center justify-center text-xs shrink-0 mt-0.5">
+                        <i class="fa-solid ${cfg.icon}"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-xs text-slate-900">${p.judul}</p>
+                        <p class="text-2xs text-slate-500 mt-0.5 leading-relaxed">${p.isi.substring(0, 120)}${p.isi.length > 120 ? '...' : ''}</p>
+                        <p class="text-3xs text-slate-400 mt-1">${getTimeAgo(p.created_at)}</p>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+    } catch (err) {
+        if (container) container.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">Gagal memuat pengumuman.</div>';
+    }
+}
+
+// ============================================================
+// PORTAL WALI — DATA DINAMIS DARI API
+// ============================================================
+
+/** Simpan data siswa aktif untuk loadProfilSiswa */
+let _parentSiswaList = [];
+
+/**
+ * Load semua data real untuk portal wali:
+ * - Profil wali dari database
+ * - Daftar siswa terkait
+ * - Kehadiran bulan ini
+ */
+async function loadParentPortal() {
+    try {
+        // Jika tidak ada token (tidak login via API, pakai mock), tampilkan data dari appState
+        const user = appState.currentUser;
+
+        // ── Update profil sidebar ──────────────────────────────────────────
+        if (user) {
+            const namaEl     = document.getElementById('portal-wali-nama');
+            const emailEl    = document.getElementById('portal-wali-email');
+            const telponEl   = document.getElementById('portal-wali-telepon');
+            const greetEl    = document.getElementById('portal-greeting-name');
+
+            if (namaEl)   namaEl.textContent   = user.nama || user.name || 'Wali Murid';
+            if (emailEl)  emailEl.textContent   = user.email || '-';
+            if (greetEl)  greetEl.textContent   = user.nama || user.name || 'Wali Murid';
+
+            // Coba fetch data wali lebih lengkap dari API (telepon, dll)
+            if (appState.token) {
+                try {
+                    const profilRes  = await fetch(`${API_BASE}/parent_portal.php?action=profil`, {
+                        headers: authHeaders()
+                    });
+                    const profilData = await profilRes.json();
+                    if (profilData.success && profilData.data) {
+                        const w = profilData.data;
+                        if (namaEl && w.nama)         namaEl.textContent  = w.nama;
+                        if (emailEl && w.email)       emailEl.textContent = w.email;
+                        if (telponEl && w.telepon)    telponEl.textContent = '📞 ' + w.telepon;
+                        if (greetEl && w.nama)        greetEl.textContent  = w.nama;
+                    }
+                } catch (e) { /* Gunakan data dari appState */ }
+            }
+        }
+
+        // ── Load siswa terkait ─────────────────────────────────────────────
+        if (appState.token) {
+            await _loadSiswaCard();
+        } else {
+            _renderSiswaCardEmpty('Login ulang untuk melihat data siswa Anda.');
+        }
+
+    } catch (err) {
+        console.warn('loadParentPortal error:', err);
+    }
+}
+
+/** Fetch dan render card siswa di portal wali */
+async function _loadSiswaCard() {
+    const card = document.getElementById('portal-siswa-card');
+    if (!card) return;
+
+    try {
+        const res  = await fetch(`${API_BASE}/parent_portal.php?action=siswa`, {
+            headers: authHeaders()
+        });
+        const data = await res.json();
+
+        if (!data.success || data.data.length === 0) {
+            _renderSiswaCardEmpty('Belum ada siswa yang terhubung dengan akun Anda.<br>Hubungi admin untuk menambahkan relasi.');
+            return;
+        }
+
+        _parentSiswaList = data.data;
+        const s = data.data[0]; // Tampilkan siswa pertama
+
+        // Fetch kehadiran siswa pertama
+        let kehadiran = { persen: '-', hadir: 0, alpa: 0, izin: 0 };
+        try {
+            const kRes  = await fetch(`${API_BASE}/parent_portal.php?action=kehadiran&siswa_id=${s.id}`, {
+                headers: authHeaders()
+            });
+            const kData = await kRes.json();
+            if (kData.success) kehadiran = kData.data;
+        } catch (e) {}
+
+        const statusColor = {
+            'Aktif':     'bg-emerald-50 text-emerald-700',
+            'Verifikasi':'bg-amber-50 text-amber-700',
+            'Alumni':    'bg-slate-100 text-slate-600',
+            'Pindah':    'bg-red-50 text-red-700'
+        };
+        const sColor = statusColor[s.status] || 'bg-blue-50 text-blue-700';
+
+        card.innerHTML = `
+        <div class="flex flex-col sm:flex-row gap-6">
+            <div class="w-full sm:w-1/3 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl overflow-hidden flex items-center justify-center" style="min-height:140px">
+                <div class="text-center p-4">
+                    <div class="w-16 h-16 bg-blue-700 text-white rounded-full flex items-center justify-center text-2xl font-black mx-auto mb-2">
+                        ${s.nama.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()}
+                    </div>
+                    <span class="text-4xs font-bold ${sColor} px-2 py-0.5 rounded-full">${s.status || 'Aktif'}</span>
+                </div>
+            </div>
+            <div class="w-full sm:w-2/3 flex flex-col justify-between min-h-0">
+                <div>
+                    <div class="text-4xs font-extrabold uppercase bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded tracking-wider inline-block mb-1">
+                        ${s.tipe_hubungan || 'Wali'} — Nama Lengkap Anak
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">${s.nama}</h3>
+                    <div class="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-3xs text-slate-500 font-medium">
+                        ${s.nisn ? `<span><i class="fa-solid fa-id-card text-blue-400 mr-0.5"></i> NISN: ${s.nisn}</span>` : ''}
+                        ${s.kelas ? `<span><i class="fa-solid fa-school text-indigo-400 mr-0.5"></i> Kelas: ${s.kelas}</span>` : ''}
+                        ${s.jenis_kelamin ? `<span><i class="fa-solid fa-venus-mars text-purple-400 mr-0.5"></i> ${s.jenis_kelamin}</span>` : ''}
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 border-t pt-4 mt-4 text-center font-medium">
+                    <div class="bg-blue-50/50 p-2 border border-blue-100 rounded-xl">
+                        <p class="text-4xs text-blue-500 font-bold uppercase">Kehadiran</p>
+                        <p class="text-sm font-black text-blue-900 mt-0.5">${kehadiran.persen !== '-' ? kehadiran.persen + '%' : '-'}</p>
+                        <p class="text-4xs text-slate-400">${kehadiran.total ? 'dari ' + kehadiran.total + ' hari' : 'bulan ini'}</p>
+                    </div>
+                    <div class="bg-emerald-50/50 p-2 border border-emerald-100 rounded-xl">
+                        <p class="text-4xs text-emerald-500 font-bold uppercase">Hadir</p>
+                        <p class="text-sm font-black text-emerald-900 mt-0.5">${kehadiran.hadir || 0}</p>
+                        <p class="text-4xs text-slate-400">hari</p>
+                    </div>
+                    <div class="bg-red-50/50 p-2 border border-red-100 rounded-xl">
+                        <p class="text-4xs text-red-500 font-bold uppercase">Alpa</p>
+                        <p class="text-sm font-black text-red-900 mt-0.5">${kehadiran.alpa || 0}</p>
+                        <p class="text-4xs text-slate-400">hari</p>
+                    </div>
+                </div>
+                ${data.data.length > 1 ? `
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                    <p class="text-3xs text-slate-400 font-bold uppercase w-full">Anak lainnya:</p>
+                    ${data.data.slice(1).map(si => `
+                        <span class="text-3xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">${si.nama} (${si.kelas || '-'})</span>
+                    `).join('')}
+                </div>` : ''}
+            </div>
+        </div>`;
+
+    } catch (err) {
+        _renderSiswaCardEmpty('Gagal memuat data siswa. Pastikan koneksi aktif.');
+    }
+}
+
+/** Tampilkan card kosong dengan pesan */
+function _renderSiswaCardEmpty(msg) {
+    const card = document.getElementById('portal-siswa-card');
+    if (card) card.innerHTML = `
+        <div class="flex flex-col items-center justify-center h-32 text-center text-xs text-slate-400 gap-2">
+            <i class="fa-solid fa-user-graduate text-2xl opacity-30"></i>
+            <p>${msg}</p>
+        </div>`;
+}
+
+/**
+ * Load halaman profil siswa detail (untuk menu "Profil Anak")
+ */
+async function loadProfilSiswa() {
+    const content = document.getElementById('profil-siswa-content');
+    if (!content) return;
+
+    // Jika _parentSiswaList belum diload, load dulu
+    if (_parentSiswaList.length === 0 && appState.token) {
+        try {
+            const res  = await fetch(`${API_BASE}/parent_portal.php?action=siswa`, {
+                headers: authHeaders()
+            });
+            const data = await res.json();
+            if (data.success) _parentSiswaList = data.data;
+        } catch (e) {}
+    }
+
+    if (_parentSiswaList.length === 0) {
+        content.innerHTML = `<div class="lg:col-span-3 flex flex-col items-center justify-center h-40 text-xs text-slate-400 gap-2">
+            <i class="fa-solid fa-user-graduate text-3xl opacity-30"></i>
+            <p>Belum ada data siswa yang terhubung.</p>
+        </div>`;
+        return;
+    }
+
+    const s = _parentSiswaList[0];
+
+    // Fetch kehadiran detail
+    let kehadiran = { persen: 0, hadir: 0, alpa: 0, izin: 0, sakit: 0, total: 0 };
+    if (appState.token) {
+        try {
+            const kRes  = await fetch(`${API_BASE}/parent_portal.php?action=kehadiran&siswa_id=${s.id}`, {
+                headers: authHeaders()
+            });
+            const kData = await kRes.json();
+            if (kData.success) kehadiran = kData.data;
+        } catch (e) {}
+    }
+
+    const infoRows = [
+        { label: 'NISN',          value: s.nisn        || '-',      icon: 'fa-id-card' },
+        { label: 'Kelas',         value: s.kelas        || '-',      icon: 'fa-school' },
+        { label: 'Jenis Kelamin', value: s.jenis_kelamin|| '-',      icon: 'fa-venus-mars' },
+        { label: 'Tanggal Lahir', value: s.tanggal_lahir
+            ? new Date(s.tanggal_lahir).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})
+            : '-',                                                    icon: 'fa-calendar' },
+        { label: 'Alamat',        value: s.alamat       || '-',      icon: 'fa-location-dot' },
+        { label: 'Status',        value: s.status       || 'Aktif',  icon: 'fa-circle-check' },
+        { label: 'Hubungan',      value: s.tipe_hubungan|| '-',      icon: 'fa-people-line' },
+    ];
+
+    content.innerHTML = `
+    <!-- Kartu profil kiri -->
+    <div class="bg-white border border-slate-200 p-6 rounded-2xl text-center shadow-2xs space-y-4">
+        <div class="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full mx-auto flex items-center justify-center border-4 border-white shadow-lg">
+            <span class="text-white text-2xl font-black">
+                ${s.nama.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()}
+            </span>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-slate-900">${s.nama}</h3>
+            <p class="text-3xs text-slate-400 font-medium mt-0.5">NISN: ${s.nisn || '-'}</p>
+            <p class="text-3xs font-bold mt-1.5">
+                <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">${s.status || 'Aktif'}</span>
+            </p>
+        </div>
+        <!-- Ringkasan kehadiran bulan ini -->
+        <div class="border-t pt-4 space-y-2 text-left">
+            <p class="text-3xs font-bold text-slate-400 uppercase">Kehadiran Bulan Ini</p>
+            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-emerald-500 h-2 rounded-full transition-all" style="width:${kehadiran.persen}%"></div>
+            </div>
+            <p class="text-xs font-black text-center text-emerald-700">${kehadiran.persen}%</p>
+            <div class="grid grid-cols-4 gap-1 text-center text-3xs font-bold mt-1">
+                <div><p class="text-slate-400">Hadir</p><p class="text-emerald-600">${kehadiran.hadir}</p></div>
+                <div><p class="text-slate-400">Izin</p><p class="text-blue-600">${kehadiran.izin}</p></div>
+                <div><p class="text-slate-400">Sakit</p><p class="text-amber-600">${kehadiran.sakit}</p></div>
+                <div><p class="text-slate-400">Alpa</p><p class="text-red-600">${kehadiran.alpa}</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail informasi kanan -->
+    <div class="lg:col-span-2 bg-white border border-slate-200 p-6 rounded-2xl shadow-2xs space-y-4">
+        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-id-card text-blue-600"></i> Detail Informasi Pribadi
+        </h3>
+        <div class="divide-y divide-slate-100">
+            ${infoRows.map(row => `
+            <div class="flex items-start gap-3 py-2.5">
+                <div class="w-6 h-6 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center text-2xs shrink-0 mt-0.5">
+                    <i class="fa-solid ${row.icon}"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-3xs text-slate-400 font-bold uppercase">${row.label}</p>
+                    <p class="text-xs font-semibold text-slate-700 mt-0.5">${row.value}</p>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        ${_parentSiswaList.length > 1 ? `
+        <div class="border-t pt-4">
+            <p class="text-3xs font-bold text-slate-400 uppercase mb-2">Anak Lainnya</p>
+            <div class="flex flex-wrap gap-2">
+                ${_parentSiswaList.slice(1).map(si => `
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+                    <div class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xs font-bold">
+                        ${si.nama[0].toUpperCase()}
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-700">${si.nama}</p>
+                        <p class="text-3xs text-slate-400">${si.kelas || '-'}</p>
+                    </div>
+                </div>`).join('')}
+            </div>
+        </div>` : ''}
+    </div>`;
+}
+
+// ============================================================
+// UPLOAD FOTO — Modal Universal
+// ============================================================
+
+/** State modal upload foto */
+const _fotoUploadState = {
+    type:         null,   // 'siswa' | 'wali' | 'profil'
+    id:           null,   // ID record
+    label:        '',     // Nama untuk judul modal
+    selectedFile: null,   // File yang dipilih
+    onSuccess:    null,   // Callback setelah sukses upload
+    currentTab:   'file', // 'file' atau 'camera'
+    mediaStream:  null,   // MediaStream dari kamera
+    capturedImageData: null  // Captured image dari kamera (Blob)
+};
+
+/**
+ * Buka modal upload foto untuk siswa (oleh admin)
+ * @param {string} type - 'siswa' | 'wali'
+ * @param {number} id   - ID record
+ * @param {string} label - Nama untuk tampil di judul
+ */
+function openUploadFoto(type, id, label) {
+    _fotoUploadState.type      = type;
+    _fotoUploadState.id        = id;
+    _fotoUploadState.label     = label;
+    _fotoUploadState.onSuccess = () => loadSiswaData();
+
+    const title = type === 'siswa'
+        ? `Upload Foto Siswa — ${label}`
+        : `Upload Foto Wali — ${label}`;
+
+    document.getElementById('upload-modal-title').textContent = title;
+    _resetFotoModal();
+    document.getElementById('modal-upload-foto').classList.remove('hidden');
+}
+
+/**
+ * Buka modal upload foto profil (oleh wali sendiri)
+ */
+function openUploadFotoProfil() {
+    const user = appState.currentUser;
+    _fotoUploadState.type      = 'profil';
+    _fotoUploadState.id        = user?.id || null;
+    _fotoUploadState.label     = user?.nama || 'Profil';
+    _fotoUploadState.onSuccess = (fotoUrl) => {
+        // Update avatar di sidebar dan portal
+        const avatarEls = document.querySelectorAll('#user-avatar, #portal-wali-avatar');
+        avatarEls.forEach(el => { if (el) el.src = fotoUrl + '?t=' + Date.now(); });
+        loadParentPortal();
+    };
+
+    document.getElementById('upload-modal-title').textContent = `Ganti Foto Profil — ${_fotoUploadState.label}`;
+    _resetFotoModal();
+    document.getElementById('modal-upload-foto').classList.remove('hidden');
+}
+
+/** Tutup modal upload foto */
+function closeUploadFotoModal() {
+    document.getElementById('modal-upload-foto').classList.add('hidden');
+    _resetFotoModal();
+}
+
+/** Reset state dan UI modal */
+function _resetFotoModal() {
+    _fotoUploadState.selectedFile = null;
+
+    const previewImg    = document.getElementById('foto-preview-img');
+    const placeholder   = document.getElementById('foto-preview-placeholder');
+    const fileInfo      = document.getElementById('foto-file-info');
+    const uploadBtn     = document.getElementById('foto-upload-btn');
+    const fileInput     = document.getElementById('foto-file-input');
+
+    if (previewImg)  { previewImg.classList.add('hidden'); previewImg.src = ''; }
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (fileInfo)    fileInfo.classList.add('hidden');
+    if (uploadBtn)   uploadBtn.disabled = true;
+    if (fileInput)   fileInput.value = '';
+}
+
+/** Handle pilih file dari input */
+function handleFotoFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) _processFotoFile(file);
+}
+
+/** Drag over */
+function handleFotoDragOver(event) {
+    event.preventDefault();
+    const zone = document.getElementById('foto-drop-zone');
+    if (zone) zone.classList.add('border-blue-500', 'bg-blue-50');
+}
+
+/** Drag leave */
+function handleFotoDragLeave(event) {
+    const zone = document.getElementById('foto-drop-zone');
+    if (zone) zone.classList.remove('border-blue-500', 'bg-blue-50');
+}
+
+/** Drop file */
+function handleFotoDrop(event) {
+    event.preventDefault();
+    handleFotoDragLeave(event);
+    const file = event.dataTransfer.files[0];
+    if (file) _processFotoFile(file);
+}
+
+/** Proses file yang dipilih — validasi + preview */
+function _processFotoFile(file) {
+    const maxSize = 3 * 1024 * 1024; // 3MB
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+    if (!allowed.includes(file.type)) {
+        showToast('⚠ Format tidak didukung. Gunakan JPG, PNG, atau WebP.', 'error');
+        return;
+    }
+    if (file.size > maxSize) {
+        showToast('⚠ Ukuran file melebihi 3MB.', 'error');
+        return;
+    }
+
+    _fotoUploadState.selectedFile = file;
+
+    // Preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const previewImg  = document.getElementById('foto-preview-img');
+        const placeholder = document.getElementById('foto-preview-placeholder');
+        if (previewImg) {
+            previewImg.src = e.target.result;
+            previewImg.classList.remove('hidden');
+        }
+        if (placeholder) placeholder.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+
+    // Info file
+    const fileInfo = document.getElementById('foto-file-info');
+    const fileName = document.getElementById('foto-file-name');
+    const fileSize = document.getElementById('foto-file-size');
+    if (fileInfo)  fileInfo.classList.remove('hidden');
+    if (fileName)  fileName.textContent = file.name;
+    if (fileSize)  fileSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+
+    // Enable tombol upload
+    const uploadBtn = document.getElementById('foto-upload-btn');
+    if (uploadBtn) uploadBtn.disabled = false;
+}
+
+/** Hapus pilihan file */
+function clearFotoSelection() {
+    _resetFotoModal();
+}
+
+/** Submit upload foto ke API */
+async function submitFotoUpload() {
+    if (!_fotoUploadState.selectedFile) {
+        showToast('⚠ Pilih foto terlebih dahulu', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('foto-upload-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-2xs"></i> Mengupload...';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('foto', _fotoUploadState.selectedFile);
+        formData.append('type', _fotoUploadState.type);
+        formData.append('id',   _fotoUploadState.id || 0);
+
+        const headers = {};
+        if (appState.token) headers['Authorization'] = 'Bearer ' + appState.token;
+
+        const res  = await fetch(`${API_BASE}/upload.php`, {
+            method:  'POST',
+            headers: headers,
+            body:    formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast('✅ ' + data.message, 'success');
+            closeUploadFotoModal();
+
+            // Jalankan callback onSuccess
+            if (typeof _fotoUploadState.onSuccess === 'function') {
+                _fotoUploadState.onSuccess(data.data?.foto_url);
+            }
+        } else {
+            showToast('⚠ ' + data.message, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-upload text-2xs"></i> Upload Foto';
+            }
+        }
+    } catch (err) {
+        showToast('⚠ Gagal terhubung ke server', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-upload text-2xs"></i> Upload Foto';
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ▶ FUNGSI UNTUK FITUR KAMERA & UPLOAD FILE
+// ════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Switch antara tab Upload File dan Ambil Kamera
+ */
+function switchUploadTab(tab) {
+    _fotoUploadState.currentTab = tab;
+    
+    const fileTab = document.getElementById('upload-file-tab');
+    const cameraTab = document.getElementById('upload-camera-tab');
+    const fileTabBtn = document.getElementById('tab-upload-file');
+    const cameraTabBtn = document.getElementById('tab-upload-camera');
+    const uploadBtn = document.getElementById('foto-upload-btn');
+    const cameraSubmitBtn = document.getElementById('submit-camera-capture-btn');
+    
+    if (tab === 'file') {
+        // Tampilkan tab file
+        if (fileTab) fileTab.classList.remove('hidden');
+        if (cameraTab) cameraTab.classList.add('hidden');
+        
+        // Update button styling
+        if (fileTabBtn) {
+            fileTabBtn.classList.add('bg-white', 'text-blue-700', 'shadow-xs');
+            fileTabBtn.classList.remove('text-slate-500');
+        }
+        if (cameraTabBtn) {
+            cameraTabBtn.classList.remove('bg-white', 'text-blue-700', 'shadow-xs');
+            cameraTabBtn.classList.add('text-slate-500');
+        }
+        
+        // Show/hide buttons
+        if (uploadBtn) uploadBtn.hidden = false;
+        if (cameraSubmitBtn) cameraSubmitBtn.hidden = true;
+        
+        // Stop kamera jika sedang berjalan
+        stopCameraStream();
+    } else if (tab === 'camera') {
+        // Tampilkan tab camera
+        if (fileTab) fileTab.classList.add('hidden');
+        if (cameraTab) cameraTab.classList.remove('hidden');
+        
+        // Update button styling
+        if (cameraTabBtn) {
+            cameraTabBtn.classList.add('bg-white', 'text-blue-700', 'shadow-xs');
+            cameraTabBtn.classList.remove('text-slate-500');
+        }
+        if (fileTabBtn) {
+            fileTabBtn.classList.remove('bg-white', 'text-blue-700', 'shadow-xs');
+            fileTabBtn.classList.add('text-slate-500');
+        }
+        
+        // Show/hide buttons
+        if (uploadBtn) uploadBtn.hidden = true;
+        if (cameraSubmitBtn) cameraSubmitBtn.hidden = true;
+    }
+}
+
+/**
+ * Mulai stream dari kamera
+ */
+async function startCameraStream() {
+    try {
+        // Request akses ke kamera
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        });
+        
+        _fotoUploadState.mediaStream = mediaStream;
+        
+        const videoEl = document.getElementById('camera-stream');
+        if (videoEl) {
+            videoEl.srcObject = mediaStream;
+            videoEl.classList.remove('hidden');
+            
+            // Hide placeholder dan canvas
+            const placeholder = document.getElementById('camera-placeholder');
+            const canvas = document.getElementById('camera-canvas');
+            if (placeholder) placeholder.classList.add('hidden');
+            if (canvas) canvas.classList.add('hidden');
+        }
+        
+        // Enable capture button dan hide start button
+        const captureBtn = document.getElementById('capture-camera-btn');
+        const startBtn = document.getElementById('start-camera-btn');
+        if (captureBtn) captureBtn.disabled = false;
+        if (startBtn) startBtn.style.display = 'none';
+        
+        showToast('✅ Kamera berhasil diaktifkan', 'success');
+    } catch (err) {
+        console.error('Kamera error:', err);
+        if (err.name === 'NotAllowedError') {
+            showToast('⚠ Akses kamera ditolak. Izinkan akses kamera untuk melanjutkan.', 'error');
+        } else if (err.name === 'NotFoundError') {
+            showToast('⚠ Kamera tidak ditemukan di perangkat ini.', 'error');
+        } else {
+            showToast('⚠ Gagal mengakses kamera: ' + err.message, 'error');
+        }
+    }
+}
+
+/**
+ * Capture frame dari video stream ke canvas
+ */
+function captureCamera() {
+    const videoEl = document.getElementById('camera-stream');
+    const canvas = document.getElementById('camera-canvas');
+    
+    if (!videoEl || !canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    
+    // Draw video frame ke canvas
+    ctx.drawImage(videoEl, 0, 0);
+    
+    // Convert canvas ke blob dan simpan
+    canvas.toBlob((blob) => {
+        _fotoUploadState.capturedImageData = blob;
+        
+        // Tampilkan preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const previewImg = document.getElementById('capture-preview-img');
+            if (previewImg) {
+                previewImg.src = e.target.result;
+            }
+        };
+        reader.readAsDataURL(blob);
+        
+        // Tampilkan preview container
+        const previewContainer = document.getElementById('capture-preview-container');
+        if (previewContainer) previewContainer.classList.remove('hidden');
+        
+        // Hide video, tampilkan canvas
+        videoEl.classList.add('hidden');
+        canvas.classList.remove('hidden');
+        
+        // Update buttons
+        const captureBtn = document.getElementById('capture-camera-btn');
+        const retakeBtn = document.getElementById('retake-camera-btn');
+        const submitBtn = document.getElementById('submit-camera-capture-btn');
+        
+        if (captureBtn) captureBtn.hidden = true;
+        if (retakeBtn) retakeBtn.hidden = false;
+        if (submitBtn) submitBtn.hidden = false;
+        
+        showToast('✅ Foto berhasil ditangkap', 'success');
+    }, 'image/jpeg', 0.95);
+}
+
+/**
+ * Ambil ulang capture
+ */
+function retakeCameraCapture() {
+    const videoEl = document.getElementById('camera-stream');
+    const canvas = document.getElementById('camera-canvas');
+    const previewContainer = document.getElementById('capture-preview-container');
+    
+    if (videoEl) videoEl.classList.remove('hidden');
+    if (canvas) canvas.classList.add('hidden');
+    if (previewContainer) previewContainer.classList.add('hidden');
+    
+    // Reset buttons
+    const captureBtn = document.getElementById('capture-camera-btn');
+    const retakeBtn = document.getElementById('retake-camera-btn');
+    const submitBtn = document.getElementById('submit-camera-capture-btn');
+    
+    if (captureBtn) captureBtn.hidden = false;
+    if (retakeBtn) retakeBtn.hidden = true;
+    if (submitBtn) submitBtn.hidden = true;
+    
+    _fotoUploadState.capturedImageData = null;
+}
+
+/**
+ * Submit capture hasil kamera ke API
+ */
+async function submitCameraCapture() {
+    if (!_fotoUploadState.capturedImageData) {
+        showToast('⚠ Tidak ada foto yang ditangkap', 'error');
+        return;
+    }
+    
+    const btn = document.getElementById('submit-camera-capture-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-2xs"></i> Mengunggah...';
+    }
+    
+    try {
+        const formData = new FormData();
+        
+        // Convert blob ke File
+        const file = new File([_fotoUploadState.capturedImageData], 'capture.jpg', { type: 'image/jpeg' });
+        formData.append('foto', file);
+        formData.append('type', _fotoUploadState.type);
+        formData.append('id', _fotoUploadState.id || 0);
+        
+        const headers = {};
+        if (appState.token) headers['Authorization'] = 'Bearer ' + appState.token;
+        
+        const res = await fetch(`${API_BASE}/upload.php`, {
+            method: 'POST',
+            headers: headers,
+            body: formData
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showToast('✅ ' + data.message, 'success');
+            closeUploadFotoModal();
+            
+            // Jalankan callback onSuccess
+            if (typeof _fotoUploadState.onSuccess === 'function') {
+                _fotoUploadState.onSuccess(data.data?.foto_url);
+            }
+        } else {
+            showToast('⚠ ' + data.message, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check text-2xs"></i> Gunakan Foto Ini';
+            }
+        }
+    } catch (err) {
+        showToast('⚠ Gagal terhubung ke server', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check text-2xs"></i> Gunakan Foto Ini';
+        }
+    } finally {
+        stopCameraStream();
+    }
+}
+
+/**
+ * Stop camera stream
+ */
+function stopCameraStream() {
+    if (_fotoUploadState.mediaStream) {
+        _fotoUploadState.mediaStream.getTracks().forEach(track => track.stop());
+        _fotoUploadState.mediaStream = null;
+    }
+}
+
+/** Update _resetFotoModal untuk reset kamera juga */
+const originalResetFotoModal = _resetFotoModal || (() => {});
+function _resetFotoModal_WithCamera() {
+    // Call original reset untuk file upload
+    _fotoUploadState.selectedFile = null;
+    
+    const previewImg    = document.getElementById('foto-preview-img');
+    const placeholder   = document.getElementById('foto-preview-placeholder');
+    const fileInfo      = document.getElementById('foto-file-info');
+    const uploadBtn     = document.getElementById('foto-upload-btn');
+    const fileInput     = document.getElementById('foto-file-input');
+    
+    if (previewImg)  { previewImg.classList.add('hidden'); previewImg.src = ''; }
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (fileInfo)    fileInfo.classList.add('hidden');
+    if (uploadBtn)   uploadBtn.disabled = true;
+    if (fileInput)   fileInput.value = '';
+    
+    // Reset camera state
+    stopCameraStream();
+    
+    const videoEl = document.getElementById('camera-stream');
+    const canvas = document.getElementById('camera-canvas');
+    const cameraPlaceholder = document.getElementById('camera-placeholder');
+    const capturePreviewContainer = document.getElementById('capture-preview-container');
+    const captureBtn = document.getElementById('capture-camera-btn');
+    const retakeBtn = document.getElementById('retake-camera-btn');
+    const submitCameraBtn = document.getElementById('submit-camera-capture-btn');
+    const startBtn = document.getElementById('start-camera-btn');
+    
+    if (videoEl) videoEl.classList.add('hidden');
+    if (canvas) canvas.classList.add('hidden');
+    if (cameraPlaceholder) cameraPlaceholder.classList.remove('hidden');
+    if (capturePreviewContainer) capturePreviewContainer.classList.add('hidden');
+    if (captureBtn) {
+        captureBtn.disabled = true;
+        captureBtn.hidden = false;
+    }
+    if (retakeBtn) retakeBtn.hidden = true;
+    if (submitCameraBtn) submitCameraBtn.hidden = true;
+    if (startBtn) startBtn.style.display = '';
+    
+    _fotoUploadState.currentTab = 'file';
+    _fotoUploadState.capturedImageData = null;
+    
+    // Reset ke tab file
+    switchUploadTab('file');
+}
+
+// Override _resetFotoModal dengan versi baru
+_resetFotoModal = _resetFotoModal_WithCamera;

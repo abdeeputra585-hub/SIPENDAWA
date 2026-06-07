@@ -1,47 +1,57 @@
 <?php
 /**
- * api/siswa.php - DIPERBAIKI
- * - Memerlukan autentikasi dengan JWT token
- * - Output di-escape untuk cegah XSS
- * - Prepared statement untuk cegah SQL injection
+ * api/siswa.php
+ * GET    — list siswa (admin/kepsek: semua | parent: hanya anaknya)
+ * POST   — tambah siswa (admin only)
+ * PUT    — update siswa (admin only)
+ * DELETE — hapus siswa  (admin only)
+ *
+ * BUG FIX: filter kelas pakai prepared statement (bukan interpolasi string)
+ * BUG FIX: parent hanya bisa lihat data siswa yang berelasi dengannya
  */
 
 require_once __DIR__ . '/config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Endpoint yang memodifikasi data (POST/PUT/DELETE) tetap perlu auth di production
-// Untuk sementara, GET diizinkan tanpa auth agar frontend bisa load data
-
-/**
- * Helper function - escape output untuk cegah XSS
- */
 function escapeOutput($data) {
-    if (is_array($data)) {
-        return array_map('escapeOutput', $data);
-    }
+    if (is_array($data)) return array_map('escapeOutput', $data);
     return htmlspecialchars($data ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 switch ($method) {
-    
+
+    // ── GET ──────────────────────────────────────────────────────────────
     case 'GET':
+        $authUser = optionalAuth();
+
         if (isset($_GET['id'])) {
             $id = (int)$_GET['id'];
-            
-            $sql = "SELECT s.id, s.nisn, s.nama, s.kelas, s.jenis_kelamin, s.status, s.alamat, s.created_at,
-                        GROUP_CONCAT(CONCAT(w.nama, '|', r.tipe, '|', w.email, '|', w.telepon) SEPARATOR ';;') as wali_info
-                    FROM siswa s 
-                    LEFT JOIN relasi r ON s.id = r.siswa_id 
-                    LEFT JOIN wali w ON r.wali_id = w.id 
-                    WHERE s.id = ?
-                    GROUP BY s.id";
-            
-            $stmt = $conn->prepare($sql);
-            if (!$stmt) {
-                sendResponse(['success' => false, 'message' => 'Database error'], 500);
+
+            // Parent: cek apakah siswa ini memang anaknya
+            if ($authUser && $authUser['role'] === 'parent') {
+                $ownCheck = $conn->prepare(
+                    "SELECT r.id FROM relasi r
+                     JOIN wali w ON r.wali_id = w.id
+                     WHERE r.siswa_id = ? AND w.user_id = ?"
+                );
+                $ownCheck->bind_param("ii", $id, $authUser['user_id']);
+                $ownCheck->execute();
+                if ($ownCheck->get_result()->num_rows === 0) {
+                    sendResponse(['success' => false, 'message' => 'Forbidden — bukan data anak Anda'], 403);
+                }
+                $ownCheck->close();
             }
-            
+
+            $sql  = "SELECT s.id, s.nisn, s.nama, s.kelas, s.jenis_kelamin, s.status, s.alamat, s.created_at,
+                         GROUP_CONCAT(CONCAT(w.nama, '|', r.tipe, '|', IFNULL(w.email,''), '|', IFNULL(w.telepon,'')) SEPARATOR ';;') as wali_info
+                     FROM siswa s
+                     LEFT JOIN relasi r ON s.id = r.siswa_id
+                     LEFT JOIN wali w ON r.wali_id = w.id
+                     WHERE s.id = ?
+                     GROUP BY s.id";
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) sendResponse(['success' => false, 'message' => 'Database error'], 500);
             $stmt->bind_param("i", $id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -50,215 +60,179 @@ switch ($method) {
                 sendResponse(['success' => false, 'message' => 'Siswa tidak ditemukan'], 404);
             }
 
-            $siswa = $result->fetch_assoc();
-            
-            // Parse wali info
+            $siswa    = $result->fetch_assoc();
             $waliList = [];
             if (!empty($siswa['wali_info'])) {
-                $waliItems = explode(';;', $siswa['wali_info']);
-                foreach ($waliItems as $item) {
-                    $parts = explode('|', $item);
+                foreach (explode(';;', $siswa['wali_info']) as $item) {
+                    $p = explode('|', $item);
                     $waliList[] = [
-                        'nama' => $parts[0] ?? '',
-                        'tipe' => $parts[1] ?? '',
-                        'email' => $parts[2] ?? '',
-                        'telepon' => $parts[3] ?? ''
+                        'nama'    => $p[0] ?? '',
+                        'tipe'    => $p[1] ?? '',
+                        'email'   => $p[2] ?? '',
+                        'telepon' => $p[3] ?? ''
                     ];
                 }
             }
-            
             unset($siswa['wali_info']);
-            
-            // ESCAPE OUTPUT untuk XSS protection
-            $siswa = escapeOutput($siswa);
+            $siswa    = escapeOutput($siswa);
             $waliList = escapeOutput($waliList);
-            
-            sendResponse([
-                'success' => true,
-                'data' => array_merge($siswa, ['wali' => $waliList])
-            ]);
-            
+
+            sendResponse(['success' => true, 'data' => array_merge($siswa, ['wali' => $waliList])]);
             $stmt->close();
+
         } else {
-            // List semua siswa dengan pagination
-            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-            $perPage = 20;
-            $offset = ($page - 1) * $perPage;
-            
-            $sql = "SELECT id, nisn, nama, kelas, jenis_kelamin, status, created_at FROM siswa";
-            
-            // Filter by kelas jika ada
-            if (isset($_GET['kelas']) && !empty($_GET['kelas'])) {
-                $kelas = $conn->real_escape_string($_GET['kelas']);
-                $sql .= " WHERE kelas LIKE '%$kelas%'";
-            }
-            
-            // Filter by status jika ada
-            if (isset($_GET['status']) && !empty($_GET['status'])) {
-                $status = $conn->real_escape_string($_GET['status']);
-                $sql .= (strpos($sql, 'WHERE') !== false ? ' AND' : ' WHERE') . " status = '$status'";
-            }
-            
-            $sql .= " ORDER BY created_at DESC LIMIT $perPage OFFSET $offset";
-            
-            $result = $conn->query($sql);
-            $siswaList = [];
-            
-            while ($row = $result->fetch_assoc()) {
-                $siswaList[] = escapeOutput($row);
+            // Jika parent, hanya tampilkan siswa yang berelasi dengannya
+            if ($authUser && $authUser['role'] === 'parent') {
+                $sql  = "SELECT DISTINCT s.id, s.nisn, s.nama, s.kelas, s.jenis_kelamin, s.status, s.created_at
+                         FROM siswa s
+                         JOIN relasi r ON s.id = r.siswa_id
+                         JOIN wali w ON r.wali_id = w.id
+                         WHERE w.user_id = ?
+                         ORDER BY s.created_at DESC";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $authUser['user_id']);
+                $stmt->execute();
+                $result     = $stmt->get_result();
+                $siswaList  = [];
+                while ($row = $result->fetch_assoc()) $siswaList[] = escapeOutput($row);
+                $stmt->close();
+
+                sendResponse([
+                    'success' => true,
+                    'data'    => $siswaList,
+                    'stats'   => ['total' => count($siswaList), 'aktif' => 0, 'verifikasi' => 0, 'alumni_pindah' => 0]
+                ]);
             }
 
-            // Hitung total untuk pagination
-            $totalSql = "SELECT COUNT(*) as total FROM siswa";
-            if (isset($_GET['kelas']) && !empty($_GET['kelas'])) {
-                $kelas = $conn->real_escape_string($_GET['kelas']);
-                $totalSql .= " WHERE kelas LIKE '%$kelas%'";
+            // Admin & Kepala Sekolah: semua siswa dengan filter
+            $page    = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+            $perPage = 20;
+            $offset  = ($page - 1) * $perPage;
+
+            // FIX: Bangun query dengan prepared statement
+            $conditions = [];
+            $bindTypes  = '';
+            $bindValues = [];
+
+            if (!empty($_GET['kelas'])) {
+                $conditions[] = "kelas LIKE ?";
+                $bindTypes   .= 's';
+                $kelasParam   = '%' . $_GET['kelas'] . '%';
+                $bindValues[] = $kelasParam;
             }
-            
-            $totalResult = $conn->query($totalSql);
-            $totalRow = $totalResult->fetch_assoc();
-            $total = $totalRow['total'];
-            $totalPages = ceil($total / $perPage);
+
+            if (!empty($_GET['status'])) {
+                $conditions[] = "status = ?";
+                $bindTypes   .= 's';
+                $bindValues[] = $_GET['status'];
+            }
+
+            $whereClause = $conditions ? " WHERE " . implode(' AND ', $conditions) : '';
+            $sql         = "SELECT id, nisn, nama, kelas, jenis_kelamin, status, created_at
+                            FROM siswa{$whereClause}
+                            ORDER BY created_at DESC LIMIT ? OFFSET ?";
+
+            $bindTypes   .= 'ii';
+            $bindValues[] = $perPage;
+            $bindValues[] = $offset;
+
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) sendResponse(['success' => false, 'message' => 'Database error'], 500);
+            if ($bindValues) $stmt->bind_param($bindTypes, ...$bindValues);
+            $stmt->execute();
+            $result    = $stmt->get_result();
+            $siswaList = [];
+            while ($row = $result->fetch_assoc()) $siswaList[] = escapeOutput($row);
+            $stmt->close();
+
+            // Total count
+            $countSql  = "SELECT COUNT(*) as total FROM siswa{$whereClause}";
+            $countStmt = $conn->prepare($countSql);
+            if ($conditions) {
+                $countTypes  = substr($bindTypes, 0, -2); // tanpa 'ii' terakhir
+                $countValues = array_slice($bindValues, 0, -2);
+                if ($countValues) $countStmt->bind_param($countTypes, ...$countValues);
+            }
+            $countStmt->execute();
+            $total      = (int)$countStmt->get_result()->fetch_assoc()['total'];
+            $totalPages = (int)ceil($total / $perPage);
+            $countStmt->close();
 
             // Statistik
-            $stats = [];
+            $stats       = [];
             $statusQuery = $conn->query("SELECT status, COUNT(*) as count FROM siswa GROUP BY status");
-            while ($row = $statusQuery->fetch_assoc()) {
-                $stats[$row['status']] = (int)$row['count'];
-            }
-
-            // Hitung stats dengan key yang sesuai dengan frontend
-            $statTotal  = array_sum($stats);
-            $statAktif  = $stats['Aktif'] ?? 0;
-            $statVerif  = $stats['Verifikasi'] ?? 0;
-            $statAlumni = ($stats['Alumni'] ?? 0) + ($stats['Pindah'] ?? 0);
+            while ($row = $statusQuery->fetch_assoc()) $stats[$row['status']] = (int)$row['count'];
 
             sendResponse([
-                'success' => true,
-                'data' => $siswaList,
-                'pagination' => [
-                    'page' => $page,
-                    'perPage' => $perPage,
-                    'total' => $total,
-                    'totalPages' => $totalPages
-                ],
-                'stats' => [
-                    'total'        => $statTotal,
-                    'aktif'        => $statAktif,
-                    'verifikasi'   => $statVerif,
-                    'alumni_pindah'=> $statAlumni
+                'success'    => true,
+                'data'       => $siswaList,
+                'pagination' => ['page' => $page, 'perPage' => $perPage, 'total' => $total, 'totalPages' => $totalPages],
+                'stats'      => [
+                    'total'         => array_sum($stats),
+                    'aktif'         => $stats['Aktif']       ?? 0,
+                    'verifikasi'    => $stats['Verifikasi']  ?? 0,
+                    'alumni_pindah' => ($stats['Alumni'] ?? 0) + ($stats['Pindah'] ?? 0)
                 ]
             ]);
         }
         break;
 
+    // ── POST: tambah siswa (admin only) ──────────────────────────────────
     case 'POST':
+        requireAuth(['admin']);
         $input = getJsonInput();
 
         if (empty($input['nisn']) || empty($input['nama']) || empty($input['kelas']) || empty($input['jenis_kelamin'])) {
             sendResponse(['success' => false, 'message' => 'NISN, nama, kelas, dan jenis kelamin wajib diisi'], 400);
         }
 
-        // Cek NISN sudah ada atau belum
-        $checkSql = "SELECT id FROM siswa WHERE nisn = ?";
-        $checkStmt = $conn->prepare($checkSql);
+        $checkStmt = $conn->prepare("SELECT id FROM siswa WHERE nisn = ?");
         $checkStmt->bind_param("s", $input['nisn']);
         $checkStmt->execute();
-        
         if ($checkStmt->get_result()->num_rows > 0) {
             sendResponse(['success' => false, 'message' => 'NISN sudah terdaftar'], 409);
         }
         $checkStmt->close();
 
-        $sql = "INSERT INTO siswa (nisn, nama, kelas, jenis_kelamin, status, alamat) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        
-        if (!$stmt) {
-            sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        }
-        
         $status = $input['status'] ?? 'Aktif';
         $alamat = $input['alamat'] ?? '';
-        
-        $stmt->bind_param(
-            "ssssss",
-            $input['nisn'],
-            $input['nama'],
-            $input['kelas'],
-            $input['jenis_kelamin'],
-            $status,
-            $alamat
-        );
+
+        $sql  = "INSERT INTO siswa (nisn, nama, kelas, jenis_kelamin, status, alamat) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) sendResponse(['success' => false, 'message' => 'Database error'], 500);
+        $stmt->bind_param("ssssss", $input['nisn'], $input['nama'], $input['kelas'], $input['jenis_kelamin'], $status, $alamat);
 
         if ($stmt->execute()) {
-            sendResponse([
-                'success' => true,
-                'message' => 'Siswa berhasil ditambahkan',
-                'data' => ['id' => $conn->insert_id]
-            ], 201);
+            sendResponse(['success' => true, 'message' => 'Siswa berhasil ditambahkan', 'data' => ['id' => $conn->insert_id]], 201);
         } else {
             sendResponse(['success' => false, 'message' => 'Gagal menambahkan siswa'], 500);
         }
         $stmt->close();
         break;
 
+    // ── PUT: update siswa (admin only) ───────────────────────────────────
     case 'PUT':
-        if (!isset($_GET['id'])) {
-            sendResponse(['success' => false, 'message' => 'ID siswa diperlukan'], 400);
-        }
+        requireAuth(['admin']);
 
-        $id = (int)$_GET['id'];
+        if (!isset($_GET['id'])) sendResponse(['success' => false, 'message' => 'ID siswa diperlukan'], 400);
+
+        $id    = (int)$_GET['id'];
         $input = getJsonInput();
+        $fields = []; $types = ''; $values = [];
 
-        $fields = [];
-        $types = '';
-        $values = [];
+        if (isset($input['nisn']))          { $fields[] = "nisn = ?";          $types .= 's'; $values[] = $input['nisn']; }
+        if (isset($input['nama']))          { $fields[] = "nama = ?";          $types .= 's'; $values[] = $input['nama']; }
+        if (isset($input['kelas']))         { $fields[] = "kelas = ?";         $types .= 's'; $values[] = $input['kelas']; }
+        if (isset($input['jenis_kelamin'])) { $fields[] = "jenis_kelamin = ?"; $types .= 's'; $values[] = $input['jenis_kelamin']; }
+        if (isset($input['status']))        { $fields[] = "status = ?";        $types .= 's'; $values[] = $input['status']; }
+        if (isset($input['alamat']))        { $fields[] = "alamat = ?";        $types .= 's'; $values[] = $input['alamat']; }
 
-        if (isset($input['nisn'])) { 
-            $fields[] = "nisn = ?"; 
-            $types .= 's'; 
-            $values[] = $input['nisn']; 
-        }
-        if (isset($input['nama'])) { 
-            $fields[] = "nama = ?"; 
-            $types .= 's'; 
-            $values[] = $input['nama']; 
-        }
-        if (isset($input['kelas'])) { 
-            $fields[] = "kelas = ?"; 
-            $types .= 's'; 
-            $values[] = $input['kelas']; 
-        }
-        if (isset($input['jenis_kelamin'])) { 
-            $fields[] = "jenis_kelamin = ?"; 
-            $types .= 's'; 
-            $values[] = $input['jenis_kelamin']; 
-        }
-        if (isset($input['status'])) { 
-            $fields[] = "status = ?"; 
-            $types .= 's'; 
-            $values[] = $input['status']; 
-        }
-        if (isset($input['alamat'])) { 
-            $fields[] = "alamat = ?"; 
-            $types .= 's'; 
-            $values[] = $input['alamat']; 
-        }
+        if (empty($fields)) sendResponse(['success' => false, 'message' => 'Tidak ada data yang diupdate'], 400);
 
-        if (empty($fields)) {
-            sendResponse(['success' => false, 'message' => 'Tidak ada data yang diupdate'], 400);
-        }
-
-        $types .= 'i';
-        $values[] = $id;
-
-        $sql = "UPDATE siswa SET " . implode(', ', $fields) . " WHERE id = ?";
+        $types .= 'i'; $values[] = $id;
+        $sql  = "UPDATE siswa SET " . implode(', ', $fields) . " WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        
-        if (!$stmt) {
-            sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        }
-        
+        if (!$stmt) sendResponse(['success' => false, 'message' => 'Database error'], 500);
         $stmt->bind_param($types, ...$values);
 
         if ($stmt->execute()) {
@@ -269,19 +243,16 @@ switch ($method) {
         $stmt->close();
         break;
 
+    // ── DELETE: hapus siswa (admin only) ─────────────────────────────────
     case 'DELETE':
-        if (!isset($_GET['id'])) {
-            sendResponse(['success' => false, 'message' => 'ID siswa diperlukan'], 400);
-        }
+        requireAuth(['admin']);
 
-        $id = (int)$_GET['id'];
-        $sql = "DELETE FROM siswa WHERE id = ?";
+        if (!isset($_GET['id'])) sendResponse(['success' => false, 'message' => 'ID siswa diperlukan'], 400);
+
+        $id   = (int)$_GET['id'];
+        $sql  = "DELETE FROM siswa WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        
-        if (!$stmt) {
-            sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        }
-        
+        if (!$stmt) sendResponse(['success' => false, 'message' => 'Database error'], 500);
         $stmt->bind_param("i", $id);
 
         if ($stmt->execute()) {
