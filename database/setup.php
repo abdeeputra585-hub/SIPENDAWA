@@ -10,6 +10,8 @@
  * 4. Memasukkan data sample (siswa, wali, notifikasi)
  */
 
+mysqli_report(MYSQLI_REPORT_OFF);
+
 $host     = 'localhost';
 $user     = 'root';
 $password = '';

@@ -30,19 +30,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Koneksi database
-$conn = new mysqli(
-    Env::get('DB_HOST', 'localhost'),
-    Env::get('DB_USERNAME', 'root'),
-    Env::get('DB_PASSWORD', ''),
-    Env::get('DB_NAME', 'eduguardian')
-);
+try {
+    $conn = new mysqli(
+        Env::get('DB_HOST', 'localhost'),
+        Env::get('DB_USERNAME', 'root'),
+        Env::get('DB_PASSWORD', ''),
+        Env::get('DB_NAME', 'eduguardian')
+    );
 
-if ($conn->connect_error) {
+    if ($conn->connect_error) {
+        throw new Exception($conn->connect_error);
+    }
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
         'message' => Env::get('APP_DEBUG') === 'true'
-            ? 'Database error: ' . $conn->connect_error
+            ? 'Database error: ' . $e->getMessage()
             : 'Koneksi database gagal. Pastikan MySQL aktif.'
     ]);
     exit();
@@ -134,8 +138,15 @@ function verifyToken($token) {
  * Return: payload token (user_id, role, email, exp)
  */
 function requireAuth($allowedRoles = []) {
-    $headers    = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    // Kompatibel dengan Apache, LiteSpeed, nginx
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION']
+              ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+              ?? '';
+    
+    if (empty($authHeader) && function_exists('getallheaders')) {
+        $h = getallheaders();
+        $authHeader = $h['Authorization'] ?? $h['authorization'] ?? '';
+    }
 
     if (empty($authHeader)) {
         sendResponse(['success' => false, 'message' => 'Unauthorized — token diperlukan'], 401);
@@ -166,8 +177,15 @@ function requireAuth($allowedRoles = []) {
  * Cek token opsional — return payload jika ada token valid, null jika tidak
  */
 function optionalAuth() {
-    $headers    = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    // Kompatibel dengan Apache, LiteSpeed, nginx
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION']
+              ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+              ?? '';
+    
+    if (empty($authHeader) && function_exists('getallheaders')) {
+        $h = getallheaders();
+        $authHeader = $h['Authorization'] ?? $h['authorization'] ?? '';
+    }
     if (empty($authHeader)) return null;
     preg_match('/Bearer\s+(\S+)/', $authHeader, $matches);
     $token = $matches[1] ?? null;

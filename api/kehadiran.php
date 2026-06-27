@@ -1,19 +1,16 @@
 <?php
 /**
- * api/kehadiran.php - DIPERBAIKI
- * - GET untuk lihat kehadiran siswa
- * - POST untuk tambah kehadiran baru
- * - DELETE untuk hapus kehadiran
+ * api/kehadiran.php
+ * - GET untuk lihat kehadiran siswa (Parent/Guru/Admin)
+ * - POST untuk tambah kehadiran baru (Guru/Admin)
+ * - DELETE untuk hapus kehadiran (Guru/Admin)
  */
 
 require_once __DIR__ . '/config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
+$user = requireAuth(['admin', 'kepala_sekolah', 'guru', 'parent']);
 
-
-/**
- * Helper - escape output
- */
 function escapeOutput($data) {
     if (is_array($data)) {
         return array_map('escapeOutput', $data);
@@ -24,47 +21,88 @@ function escapeOutput($data) {
 switch ($method) {
     
     case 'GET':
+        // Jika action=list_kelas (untuk form absensi guru/admin)
+        if (isset($_GET['action']) && $_GET['action'] === 'list_kelas') {
+            if (!in_array($user['role'], ['admin', 'guru'])) {
+                sendResponse(['success' => false, 'message' => 'Forbidden'], 403);
+            }
+            
+            $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+            
+            // Ambil semua siswa beserta status absensinya pada tanggal tersebut
+            $sql = "SELECT s.id, s.nama, s.nisn, k.status, k.keterangan 
+                    FROM siswa s
+                    LEFT JOIN kehadiran k ON s.id = k.siswa_id AND k.tanggal = ?
+                    ORDER BY s.nama ASC";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $tanggal);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            
+            $data = [];
+            while ($row = $res->fetch_assoc()) {
+                $data[] = $row;
+            }
+            sendResponse(['success' => true, 'data' => $data]);
+            break;
+        }
+
+        // --- GET DETAIL PER SISWA ---
         if (!isset($_GET['siswa_id']) || empty($_GET['siswa_id'])) {
             sendResponse(['success' => false, 'message' => 'siswa_id wajib diisi'], 400);
         }
         
         $siswaId = (int)$_GET['siswa_id'];
+        
+        // Parent: pastikan ini adalah anaknya
+        if ($user['role'] === 'parent') {
+            $stmt = $conn->prepare("
+                SELECT r.id FROM relasi r 
+                JOIN wali w ON r.wali_id = w.id 
+                WHERE r.siswa_id = ? AND w.user_id = ? AND r.status = 'Terverifikasi'
+            ");
+            $stmt->bind_param("ii", $siswaId, $user['user_id']);
+            $stmt->execute();
+            if ($stmt->get_result()->num_rows === 0) {
+                sendResponse(['success' => false, 'message' => 'Akses ditolak'], 403);
+            }
+        }
+
         $action = $_GET['action'] ?? '';
         
         if ($action === 'summary') {
+            $bulan = $_GET['bulan'] ?? '';
+            
+            $where = ["siswa_id = ?"];
+            $params = [$siswaId];
+            $types = "i";
+            
+            if ($bulan) {
+                $where[] = "DATE_FORMAT(tanggal, '%Y-%m') = ?";
+                $params[] = $bulan;
+                $types .= "s";
+            }
+            $whereSql = implode(" AND ", $where);
+
             // GET ringkasan kehadiran siswa
             $sql = "SELECT status, COUNT(*) as total FROM kehadiran 
-                   WHERE siswa_id = ? 
+                   WHERE $whereSql 
                    GROUP BY status";
             $stmt = $conn->prepare($sql);
-            
-            if (!$stmt) {
-                sendResponse(['success' => false, 'message' => 'Database error'], 500);
-            }
-            
-            $stmt->bind_param("i", $siswaId);
+            $stmt->bind_param($types, ...$params);
             $stmt->execute();
             $result = $stmt->get_result();
             
-            $summary = [
-                'Hadir' => 0,
-                'Izin' => 0,
-                'Sakit' => 0,
-                'Alpa' => 0,
-                'Total' => 0
-            ];
-            
+            $summary = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alpa' => 0, 'Total' => 0];
             while ($row = $result->fetch_assoc()) {
                 $summary[$row['status']] = (int)$row['total'];
                 $summary['Total'] += (int)$row['total'];
             }
 
             // Get history terbaru
-            $historySql = "SELECT tanggal, status, keterangan FROM kehadiran 
-                          WHERE siswa_id = ? 
-                          ORDER BY tanggal DESC LIMIT 10";
+            $historySql = "SELECT tanggal, status, keterangan FROM kehadiran WHERE $whereSql ORDER BY tanggal DESC LIMIT 10";
             $histStmt = $conn->prepare($historySql);
-            $histStmt->bind_param("i", $siswaId);
+            $histStmt->bind_param($types, ...$params);
             $histStmt->execute();
             $histResult = $histStmt->get_result();
             
@@ -75,28 +113,17 @@ switch ($method) {
 
             sendResponse([
                 'success' => true,
-                'data' => [
-                    'summary' => $summary,
-                    'history' => $history
-                ]
+                'data' => ['summary' => $summary, 'history' => $history]
             ]);
-            
-            $stmt->close();
-            $histStmt->close();
         } else {
-            // GET list kehadiran siswa
+            // GET list kehadiran siswa (PAGINATION)
             $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
             $perPage = 20;
             $offset = ($page - 1) * $perPage;
             
-            $sql = "SELECT id, tanggal, status, keterangan, created_at 
-                   FROM kehadiran 
-                   WHERE siswa_id = ? 
-                   ORDER BY tanggal DESC 
-                   LIMIT $perPage OFFSET $offset";
-            
+            $sql = "SELECT id, tanggal, status, keterangan, created_at FROM kehadiran WHERE siswa_id = ? ORDER BY tanggal DESC LIMIT ? OFFSET ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $siswaId);
+            $stmt->bind_param("iii", $siswaId, $perPage, $offset);
             $stmt->execute();
             $result = $stmt->get_result();
             
@@ -110,9 +137,7 @@ switch ($method) {
             $countStmt = $conn->prepare($countSql);
             $countStmt->bind_param("i", $siswaId);
             $countStmt->execute();
-            $countResult = $countStmt->get_result();
-            $countRow = $countResult->fetch_assoc();
-            $total = $countRow['total'];
+            $total = $countStmt->get_result()->fetch_assoc()['total'];
             
             sendResponse([
                 'success' => true,
@@ -124,153 +149,102 @@ switch ($method) {
                     'totalPages' => ceil($total / $perPage)
                 ]
             ]);
-            
-            $stmt->close();
-            $countStmt->close();
         }
         break;
 
     case 'POST':
-        $input = getJsonInput();
-        
-        if (empty($input['siswa_id']) || empty($input['tanggal']) || empty($input['status'])) {
-            sendResponse(['success' => false, 'message' => 'siswa_id, tanggal, dan status wajib diisi'], 400);
+        if (!in_array($user['role'], ['admin', 'guru'])) {
+            sendResponse(['success' => false, 'message' => 'Forbidden'], 403);
         }
-        
-        // Validasi status
-        $validStatus = ['Hadir', 'Izin', 'Sakit', 'Alpa'];
-        if (!in_array($input['status'], $validStatus)) {
-            sendResponse(['success' => false, 'message' => 'Status harus: Hadir, Izin, Sakit, atau Alpa'], 400);
-        }
-        
-        // Validasi tanggal format
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $input['tanggal'])) {
-            sendResponse(['success' => false, 'message' => 'Format tanggal harus YYYY-MM-DD'], 400);
-        }
-        
-        $siswaId = (int)$input['siswa_id'];
-        $tanggal = $input['tanggal'];
-        $status = $input['status'];
-        $keterangan = $input['keterangan'] ?? '';
-        
-        // Cek apakah siswa ada
-        $checkSql = "SELECT id FROM siswa WHERE id = ?";
-        $checkStmt = $conn->prepare($checkSql);
-        $checkStmt->bind_param("i", $siswaId);
-        $checkStmt->execute();
-        
-        if ($checkStmt->get_result()->num_rows === 0) {
-            sendResponse(['success' => false, 'message' => 'Siswa tidak ditemukan'], 404);
-        }
-        $checkStmt->close();
-        
-        // Cek apakah kehadiran untuk tanggal tersebut sudah ada
-        $existSql = "SELECT id FROM kehadiran WHERE siswa_id = ? AND tanggal = ?";
-        $existStmt = $conn->prepare($existSql);
-        $existStmt->bind_param("is", $siswaId, $tanggal);
-        $existStmt->execute();
-        
-        if ($existStmt->get_result()->num_rows > 0) {
-            sendResponse(['success' => false, 'message' => 'Kehadiran untuk tanggal ini sudah tercatat'], 409);
-        }
-        $existStmt->close();
-        
-        // Insert kehadiran
-        $sql = "INSERT INTO kehadiran (siswa_id, tanggal, status, keterangan) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        
-        if (!$stmt) {
-            sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        }
-        
-        $stmt->bind_param("isss", $siswaId, $tanggal, $status, $keterangan);
-        
-        if ($stmt->execute()) {
-            sendResponse([
-                'success' => true,
-                'message' => 'Kehadiran berhasil dicatat',
-                'data' => ['id' => $conn->insert_id]
-            ], 201);
-        } else {
-            sendResponse(['success' => false, 'message' => 'Gagal mencatat kehadiran'], 500);
-        }
-        $stmt->close();
-        break;
 
-    case 'PUT':
-        if (!isset($_GET['id']) || empty($_GET['id'])) {
-            sendResponse(['success' => false, 'message' => 'ID kehadiran diperlukan'], 400);
-        }
-        
-        $id = (int)$_GET['id'];
         $input = getJsonInput();
         
-        $fields = [];
-        $types = '';
-        $values = [];
-        
-        if (isset($input['status']) && in_array($input['status'], ['Hadir', 'Izin', 'Sakit', 'Alpa'])) {
-            $fields[] = "status = ?";
-            $types .= 's';
-            $values[] = $input['status'];
-        }
-        
-        if (isset($input['keterangan'])) {
-            $fields[] = "keterangan = ?";
-            $types .= 's';
-            $values[] = $input['keterangan'];
-        }
-        
-        if (empty($fields)) {
-            sendResponse(['success' => false, 'message' => 'Tidak ada data yang diupdate'], 400);
-        }
-        
-        $types .= 'i';
-        $values[] = $id;
-        
-        $sql = "UPDATE kehadiran SET " . implode(', ', $fields) . " WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        
-        if (!$stmt) {
-            sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        }
-        
-        $stmt->bind_param($types, ...$values);
-        
-        if ($stmt->execute()) {
-            sendResponse(['success' => true, 'message' => 'Kehadiran berhasil diupdate']);
+        // Mode absensi masal
+        if (isset($_GET['action']) && $_GET['action'] === 'masal') {
+            $tanggal = $input['tanggal'] ?? '';
+            $kehadiran = $input['kehadiran'] ?? []; // format: [{siswa_id: 1, status: 'Hadir', keterangan: ''}, ...]
+            
+            if (!$tanggal || empty($kehadiran)) {
+                sendResponse(['success' => false, 'message' => 'Data tidak lengkap'], 400);
+            }
+
+            $conn->begin_transaction();
+            try {
+                // Hapus absensi sebelumnya pada tanggal yang sama untuk mencegah duplikat
+                $del = $conn->prepare("DELETE FROM kehadiran WHERE tanggal = ?");
+                $del->bind_param("s", $tanggal);
+                $del->execute();
+
+                // Insert absensi baru
+                $stmt = $conn->prepare("INSERT INTO kehadiran (siswa_id, tanggal, status, keterangan) VALUES (?, ?, ?, ?)");
+                foreach ($kehadiran as $k) {
+                    $sid = (int)$k['siswa_id'];
+                    $sts = $k['status'];
+                    $ket = $k['keterangan'] ?? '';
+                    $stmt->bind_param("isss", $sid, $tanggal, $sts, $ket);
+                    $stmt->execute();
+                }
+                $conn->commit();
+                sendResponse(['success' => true, 'message' => 'Kehadiran kelas berhasil disimpan']);
+            } catch (Exception $e) {
+                $conn->rollback();
+                sendResponse(['success' => false, 'message' => 'Gagal menyimpan absensi: ' . $e->getMessage()]);
+            }
         } else {
-            sendResponse(['success' => false, 'message' => 'Gagal update kehadiran'], 500);
+            // Absensi single
+            if (empty($input['siswa_id']) || empty($input['tanggal']) || empty($input['status'])) {
+                sendResponse(['success' => false, 'message' => 'siswa_id, tanggal, dan status wajib diisi'], 400);
+            }
+            
+            $validStatus = ['Hadir', 'Izin', 'Sakit', 'Alpa'];
+            if (!in_array($input['status'], $validStatus)) {
+                sendResponse(['success' => false, 'message' => 'Status tidak valid'], 400);
+            }
+            
+            $siswaId = (int)$input['siswa_id'];
+            $tanggal = $input['tanggal'];
+            $status = $input['status'];
+            $keterangan = $input['keterangan'] ?? '';
+            
+            // Cek duplikat
+            $existStmt = $conn->prepare("SELECT id FROM kehadiran WHERE siswa_id = ? AND tanggal = ?");
+            $existStmt->bind_param("is", $siswaId, $tanggal);
+            $existStmt->execute();
+            if ($existStmt->get_result()->num_rows > 0) {
+                sendResponse(['success' => false, 'message' => 'Kehadiran untuk tanggal ini sudah tercatat'], 409);
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO kehadiran (siswa_id, tanggal, status, keterangan) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("isss", $siswaId, $tanggal, $status, $keterangan);
+            
+            if ($stmt->execute()) {
+                sendResponse(['success' => true, 'message' => 'Kehadiran berhasil dicatat']);
+            } else {
+                sendResponse(['success' => false, 'message' => 'Gagal mencatat kehadiran: ' . $stmt->error]);
+            }
         }
-        $stmt->close();
         break;
 
     case 'DELETE':
-        if (!isset($_GET['id']) || empty($_GET['id'])) {
+        if (!in_array($user['role'], ['admin', 'guru'])) {
+            sendResponse(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+        
+        $input = getJsonInput();
+        $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
+        
+        if (!$id) {
             sendResponse(['success' => false, 'message' => 'ID kehadiran diperlukan'], 400);
         }
         
-        $id = (int)$_GET['id'];
-        
-        $sql = "DELETE FROM kehadiran WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        
-        if (!$stmt) {
-            sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        }
-        
+        $stmt = $conn->prepare("DELETE FROM kehadiran WHERE id = ?");
         $stmt->bind_param("i", $id);
         
-        if ($stmt->execute()) {
-            if ($stmt->affected_rows > 0) {
-                sendResponse(['success' => true, 'message' => 'Kehadiran berhasil dihapus']);
-            } else {
-                sendResponse(['success' => false, 'message' => 'Kehadiran tidak ditemukan'], 404);
-            }
+        if ($stmt->execute() && $stmt->affected_rows > 0) {
+            sendResponse(['success' => true, 'message' => 'Kehadiran berhasil dihapus']);
         } else {
-            sendResponse(['success' => false, 'message' => 'Gagal menghapus kehadiran'], 500);
+            sendResponse(['success' => false, 'message' => 'Gagal menghapus atau data tidak ditemukan']);
         }
-        $stmt->close();
         break;
 
     default:

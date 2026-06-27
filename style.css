@@ -454,6 +454,16 @@ body {
   animation: spin-slow 8s linear infinite;
 }
 
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
 /* ============================================
    ANIMASI & POLISH TAMBAHAN
    ============================================ */
@@ -794,4 +804,84 @@ input,
 select,
 textarea {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* =========================================
+   MODERN UI (GLASSMORPHISM & BENTO GRID)
+   ========================================= */
+
+/* Mesh Gradient Background */
+.mesh-bg {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(228,100%,74%,0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(355,100%,93%,0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(340,100%,76%,0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(22,100%,77%,0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(242,100%,70%,0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(343,100%,76%,0.15) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+body.dark .mesh-bg {
+  background-color: #0f172a;
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(228,100%,74%,0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(189,100%,56%,0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(355,100%,93%,0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(340,100%,76%,0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(22,100%,77%,0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(242,100%,70%,0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(343,100%,76%,0.05) 0px, transparent 50%);
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05) !important;
+}
+
+body.dark .glass-card {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Topbar Glass */
+.glass-topbar {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+body.dark .glass-topbar {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Bento Grid Transitions */
+.bento-item {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.bento-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08) !important;
+}
+body.dark .bento-item:hover {
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Floating Animation for accents */
+@keyframes softFloat {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+.animate-soft-float {
+  animation: softFloat 4s ease-in-out infinite;
 }

@@ -1,0 +1,17 @@
+# Proteksi folder uploads — blokir eksekusi file PHP/script berbahaya
+# File ini wajib ada untuk keamanan hosting!
+
+# Blokir eksekusi PHP dan script lainnya
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|pl|py|cgi|sh|bash)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Hanya izinkan akses ke file gambar dan dokumen yang diizinkan
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|pdf|doc|docx)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Tidak ada directory listing
+Options -Indexes

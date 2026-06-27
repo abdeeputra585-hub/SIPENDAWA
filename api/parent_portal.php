@@ -48,7 +48,7 @@ switch ($action) {
 
     // ── Siswa terkait dengan wali ini ─────────────────────────────────────
     case 'siswa':
-        $sql  = "SELECT s.*, r.tipe_hubungan, r.status as relasi_status
+        $sql  = "SELECT s.*, r.tipe as tipe_hubungan, r.status as relasi_status
                  FROM siswa s
                  JOIN relasi r ON r.siswa_id = s.id
                  JOIN wali w ON r.wali_id = w.id

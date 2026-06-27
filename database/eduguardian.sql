@@ -6,9 +6,10 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'parent', 'kepala_sekolah') NOT NULL,
+    role ENUM('admin', 'parent', 'kepala_sekolah', 'guru') NOT NULL,
     nama VARCHAR(255) NOT NULL,
     avatar VARCHAR(500) DEFAULT NULL,
+    google_id VARCHAR(255) DEFAULT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS siswa (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nisn VARCHAR(20) UNIQUE NOT NULL,
     nama VARCHAR(255) NOT NULL,
+    tanggal_lahir DATE DEFAULT NULL,
     kelas VARCHAR(50) NOT NULL,
     jenis_kelamin ENUM('Laki-laki', 'Perempuan') NOT NULL,
     status ENUM('Aktif', 'Verifikasi', 'Alumni', 'Pindah') DEFAULT 'Aktif',
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS wali (
     telepon VARCHAR(20) DEFAULT NULL,
     pekerjaan VARCHAR(100) DEFAULT NULL,
     alamat TEXT DEFAULT NULL,
+    foto VARCHAR(500) DEFAULT NULL,
     status ENUM('Terverifikasi', 'Pending', 'Ditolak') DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL

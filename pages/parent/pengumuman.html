@@ -1,0 +1,70 @@
+<!-- /pages/parent/pengumuman.html -->
+<div class=" space-y-6 animate-fade-in relative pb-20 max-w-4xl mx-auto">
+    
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Parent Portal &rarr; Pusat Info</div>
+            <h2 class="text-2xl font-bold text-slate-900">Pengumuman Sekolah</h2>
+        </div>
+        <div class="w-full md:w-64">
+            <select id="parent-pengumuman-kategori" onchange="parentPengumumanLoadList(1)" class="w-full px-4 py-2.5 bg-white border border-slate-200 shadow-sm rounded-xl text-sm font-bold text-slate-700 outline-none focus:border-blue-500 cursor-pointer appearance-none">
+                <option value="all">Semua Kategori</option>
+                <option value="Akademik">Akademik</option>
+                <option value="Event">Event</option>
+                <option value="Info Penting">Info Penting</option>
+                <option value="Keuangan">Keuangan</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- FEED CONTAINER -->
+    <div id="parent-pengumuman-feed" class="space-y-4">
+        <div class="text-center py-10 text-slate-400 bg-white rounded-2xl border border-slate-200">
+            <i class="fa-solid fa-spinner animate-spin text-2xl text-blue-500 mb-2"></i><br>Memuat pengumuman...
+        </div>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex justify-center mt-6">
+        <div id="parent-pengumuman-pagination" class="flex gap-1"></div>
+    </div>
+
+    <!-- MODAL DETAIL PENGUMUMAN -->
+    <div id="modal-parent-pengumuman" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300" onclick="if(event.target===this) parentPengumumanCloseModal()">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in">
+            <!-- Header Modal -->
+            <div class="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50 shrink-0">
+                <div class="pr-8">
+                    <div id="parent-detail-kategori" class="text-xs font-bold text-blue-600 mb-1 tracking-wide uppercase">Kategori</div>
+                    <h3 id="parent-detail-judul" class="font-bold text-xl text-slate-900 leading-tight">Judul Pengumuman</h3>
+                    <div class="text-xs text-slate-500 mt-2 flex items-center gap-3">
+                        <span><i class="fa-solid fa-calendar-days text-slate-400 mr-1"></i> <span id="parent-detail-tanggal">Tanggal</span></span>
+                        <span><i class="fa-solid fa-user text-slate-400 mr-1"></i> <span id="parent-detail-penulis">Penulis</span></span>
+                    </div>
+                </div>
+                <button type="button" onclick="parentPengumumanCloseModal()" class="text-slate-400 hover:text-slate-700 transition-colors w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm absolute right-4 top-4">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Body Modal -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white">
+                <div id="parent-detail-konten" class="text-slate-700 text-sm leading-relaxed prose prose-sm max-w-none">
+                    <!-- Konten HTML disisipkan di sini -->
+                </div>
+                
+                <div id="parent-detail-attachment-container" class="mt-8 pt-6 border-t border-slate-100 hidden">
+                    <h4 class="text-sm font-bold text-slate-800 mb-3"><i class="fa-solid fa-paperclip text-slate-400 mr-1"></i> Lampiran File</h4>
+                    <a id="parent-detail-attachment-link" href="#" target="_blank" class="inline-flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl transition text-sm font-bold text-blue-700">
+                        <i class="fa-regular fa-file-pdf text-red-500 text-lg"></i>
+                        <span id="parent-detail-attachment-name">Unduh Lampiran</span>
+                        <i class="fa-solid fa-download ml-2 text-slate-400"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

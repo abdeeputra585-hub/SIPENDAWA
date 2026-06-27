@@ -1,0 +1,145 @@
+<!-- /pages/parent/pembayaran.html -->
+<div class=" h-full flex flex-col gap-6 relative pb-10">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">Tagihan & Pembayaran</h2>
+            <p class="text-sm text-slate-500 mt-1">Kelola dan pantau status tagihan sekolah anak Anda</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <select id="pembayaran-siswa-select" onchange="parentPembayaranLoadAll()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm appearance-none cursor-pointer">
+                <option value="">Pilih Anak...</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-money-bill-wave"></i></div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase">Total Tagihan</h3>
+            </div>
+            <p id="summary-total-tagihan" class="text-2xl font-black text-slate-900">Rp 0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-check-circle"></i></div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase">Terbayar</h3>
+            </div>
+            <p id="summary-total-terbayar" class="text-2xl font-black text-emerald-600">Rp 0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase">Sisa Tagihan</h3>
+            </div>
+            <p id="summary-sisa-tagihan" class="text-2xl font-black text-amber-600">Rp 0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase">Overdue</h3>
+            </div>
+            <p id="summary-total-overdue" class="text-2xl font-black text-red-600">Rp 0</p>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800">Daftar Tagihan</h3>
+            <button onclick="parentPembayaranLoadList()" class="text-slate-400 hover:text-blue-600 transition-colors" title="Refresh">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4">Tipe Pembayaran</th>
+                        <th class="px-6 py-4">Jumlah</th>
+                        <th class="px-6 py-4">Jatuh Tempo</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="pembayaran-tbody" class="divide-y divide-slate-100">
+                    <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i><br>Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Upload/Detail -->
+<div id="modal-pembayaran-detail" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-800 text-lg">Detail Tagihan</h3>
+            <button onclick="parentPembayaranCloseModal()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="p-6">
+            <div class="bg-blue-50/50 rounded-2xl p-4 border border-blue-100 mb-6 flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-blue-500 font-bold uppercase mb-1">Tipe Tagihan</p>
+                    <p id="det-tipe" class="text-sm font-bold text-slate-800">-</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-blue-500 font-bold uppercase mb-1">Total Tagihan</p>
+                    <p id="det-jumlah" class="text-lg font-black text-blue-700">-</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-xs text-slate-400 mb-1">Jatuh Tempo</p>
+                    <p id="det-tempo" class="text-sm font-bold text-slate-700">-</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 mb-1">Status</p>
+                    <div id="det-status"></div>
+                </div>
+            </div>
+
+            <div id="upload-section" class="hidden">
+                <hr class="border-slate-100 mb-6">
+                <h4 class="font-bold text-slate-700 mb-3 text-sm">Upload Bukti Pembayaran</h4>
+                <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 hover:border-blue-300 transition-colors cursor-pointer group relative">
+                    <input type="file" id="pembayaran-file" accept="image/jpeg, image/png, application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="parentPembayaranHandleFile(this)">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl mx-auto mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <p class="text-sm font-bold text-slate-700 mb-1">Pilih File atau Drag & Drop</p>
+                    <p class="text-xs text-slate-400">JPG, PNG atau PDF (Maks. 5MB)</p>
+                    <p id="file-name-display" class="text-xs font-bold text-blue-600 mt-3 hidden"></p>
+                </div>
+                <button id="btn-upload-bukti" onclick="parentPembayaranSubmitUpload()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Kirim Bukti Pembayaran
+                </button>
+            </div>
+
+            <div id="receipt-section" class="hidden">
+                <hr class="border-slate-100 mb-6">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-xs text-slate-500">Invoice Number</p>
+                        <p id="det-invoice" class="text-sm font-bold text-slate-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Tanggal Bayar</p>
+                        <p id="det-tgl-bayar" class="text-sm font-bold text-slate-800">-</p>
+                    </div>
+                </div>
+                
+                <!-- If bukti uploaded but waiting konfirmasi -->
+                <div id="bukti-review" class="mb-4"></div>
+
+                <button id="btn-download-receipt" onclick="parentPembayaranDownloadReceipt()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Download Kuitansi (PDF)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

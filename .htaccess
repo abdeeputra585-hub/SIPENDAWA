@@ -1,6 +1,70 @@
+# ============================================================
 # EduGuardian - Apache Configuration
+# ============================================================
+
 # Prioritaskan index.html (versi baru SPA) di atas index.php (versi lama)
 DirectoryIndex index.html index.php
 
-# Aktifkan mod_rewrite
+# Sembunyikan daftar direktori
 Options -Indexes
+
+# ============================================================
+# KEAMANAN: Blokir akses ke file sensitif
+# ============================================================
+
+# Blokir .env agar tidak bisa diakses publik
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Blokir file konfigurasi sensitif lainnya
+<FilesMatch "^(env\.php|jwt\.php|koneksi\.php|config\.php)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Blokir file debug/test (tidak diperlukan di production)
+<FilesMatch "^(debug_query|test_db|test_db2|test_insert|test_detail|setup_db|describe|desc_pengumuman)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Blokir file .sql agar tidak bisa didownload
+<FilesMatch "\.sql$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Blokir akses ke folder database dan config langsung
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # === PENTING: Pass Authorization header ke PHP (diperlukan untuk JWT) ===
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule ^database/ - [F,L]
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^\.git/ - [F,L]
+</IfModule>
+
+# Alternatif passthrough Authorization header
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+# ============================================================
+# HTTPS Redirect (aktifkan jika hosting support SSL)
+# ============================================================
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteCond %{HTTPS} off
+#     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
+
+# ============================================================
+# CORS Headers untuk API
+# ============================================================
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>

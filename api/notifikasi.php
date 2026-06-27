@@ -15,52 +15,71 @@ switch ($method) {
 
     // ── GET: ambil notifikasi ─────────────────────────────────────────────
     case 'GET':
-        $authUser = optionalAuth();
+        try {
+            $authUser = optionalAuth();
 
-        if ($authUser) {
-            // Jika sudah login: tampilkan notifikasi sesuai user_id dari token
-            $userId = $authUser['user_id'];
-            $sql    = "SELECT id, judul, pesan, tipe, dibaca, created_at
-                       FROM notifikasi
-                       WHERE user_id = ? OR user_id IS NULL
-                       ORDER BY created_at DESC";
-            $stmt   = $conn->prepare($sql);
-            $stmt->bind_param("i", $userId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-        } elseif (isset($_GET['user_id'])) {
-            // Fallback: filter via query param (tanpa token)
-            $userId = (int)$_GET['user_id'];
-            $sql    = "SELECT id, judul, pesan, tipe, dibaca, created_at
-                       FROM notifikasi WHERE user_id = ? ORDER BY created_at DESC";
-            $stmt   = $conn->prepare($sql);
-            $stmt->bind_param("i", $userId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-        } else {
-            // Admin/tanpa login: semua notifikasi
-            $sql    = "SELECT n.id, n.judul, n.pesan, n.tipe, n.dibaca, n.created_at, u.nama as user_nama
-                       FROM notifikasi n
-                       LEFT JOIN users u ON n.user_id = u.id
-                       ORDER BY n.created_at DESC";
-            $result = $conn->query($sql);
+            if ($authUser) {
+                $userId = $authUser['user_id'];
+                $role   = $authUser['role'] ?? '';
+
+                if ($role === 'admin' || $role === 'kepala_sekolah') {
+                    $sql    = "SELECT n.id, n.judul, n.pesan, n.tipe, n.dibaca, n.created_at, u.nama as user_nama
+                               FROM notifikasi n
+                               LEFT JOIN users u ON n.user_id = u.id
+                               ORDER BY n.created_at DESC";
+                    $stmt   = $conn->prepare($sql);
+                    $stmt->execute();
+                } else {
+                    $sql    = "SELECT id, judul, pesan, tipe, dibaca, created_at
+                               FROM notifikasi
+                               WHERE user_id = ? OR user_id IS NULL
+                               ORDER BY created_at DESC";
+                    $stmt   = $conn->prepare($sql);
+                    $stmt->bind_param("i", $userId);
+                    $stmt->execute();
+                }
+                $result = $stmt->get_result();
+            } elseif (isset($_GET['user_id'])) {
+                // Fallback: filter via query param (tanpa token)
+                $userId = (int)$_GET['user_id'];
+                $sql    = "SELECT id, judul, pesan, tipe, dibaca, created_at
+                           FROM notifikasi WHERE user_id = ? ORDER BY created_at DESC";
+                $stmt   = $conn->prepare($sql);
+                $stmt->bind_param("i", $userId);
+                $stmt->execute();
+                $result = $stmt->get_result();
+            } else {
+                // Admin/tanpa login: semua notifikasi
+                $sql    = "SELECT n.id, n.judul, n.pesan, n.tipe, n.dibaca, n.created_at, u.nama as user_nama
+                           FROM notifikasi n
+                           LEFT JOIN users u ON n.user_id = u.id
+                           ORDER BY n.created_at DESC";
+                $result = $conn->query($sql);
+            }
+
+            $notifList   = [];
+            $belumDibaca = 0;
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    if ($row['dibaca'] == 0) $belumDibaca++;
+                    $notifList[] = $row;
+                }
+            }
+
+            if (isset($stmt) && $stmt) $stmt->close();
+
+            sendResponse([
+                'success'      => true,
+                'data'         => $notifList,
+                'belum_dibaca' => $belumDibaca,
+                'total'        => count($notifList)
+            ]);
+        } catch (Exception $e) {
+            sendResponse([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         }
-
-        $notifList   = [];
-        $belumDibaca = 0;
-        while ($row = $result->fetch_assoc()) {
-            if ($row['dibaca'] == 0) $belumDibaca++;
-            $notifList[] = $row;
-        }
-
-        if (isset($stmt)) $stmt->close();
-
-        sendResponse([
-            'success'      => true,
-            'data'         => $notifList,
-            'belum_dibaca' => $belumDibaca,
-            'total'        => count($notifList)
-        ]);
         break;
 
     // ── POST: tandai notifikasi sebagai dibaca ────────────────────────────
@@ -105,3 +124,4 @@ switch ($method) {
 
 $conn->close();
 ?>
+

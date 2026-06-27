@@ -1,0 +1,187 @@
+<!-- /pages/admin/guru.html -->
+<div class=" space-y-6 animate-fade-in relative pb-20">
+    
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Admin Panel &rarr; Data Pegawai</div>
+            <h2 class="text-2xl font-bold text-slate-900">Manajemen Guru</h2>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="adminGuruExport()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-file-excel text-green-600"></i> Export
+            </button>
+            <button onclick="adminGuruOpenAddModal()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Tambah Guru
+            </button>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col md:flex-row gap-4">
+        <div class="flex-1 relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <i class="fa-solid fa-search"></i>
+            </span>
+            <input type="text" id="admin-guru-search" onkeyup="adminGuruDebounceSearch()" placeholder="Cari NIP, Nama, Email..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all">
+        </div>
+        <div class="w-full md:w-48">
+            <select id="admin-guru-status" onchange="adminGuruLoadList(1)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 cursor-pointer appearance-none">
+                <option value="all">Semua Status</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- TABLE DATA -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4 border-b border-slate-200">Profil</th>
+                        <th class="px-6 py-4 border-b border-slate-200">Kontak</th>
+                        <th class="px-6 py-4 border-b border-slate-200">Akademik</th>
+                        <th class="px-6 py-4 border-b border-slate-200">Status</th>
+                        <th class="px-6 py-4 border-b border-slate-200 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-guru-tbody" class="divide-y divide-slate-100">
+                    <!-- Data injected via JS -->
+                    <tr><td colspan="5" class="text-center py-10 text-slate-400"><i class="fa-solid fa-spinner animate-spin text-2xl text-blue-500 mb-2"></i><br>Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- PAGINATION -->
+        <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div id="admin-guru-page-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 data</div>
+            <div id="admin-guru-pagination" class="flex gap-1">
+                <!-- Buttons injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FORM GURU -->
+    <div id="modal-admin-guru-form" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 id="admin-guru-modal-title" class="font-bold text-xl text-slate-800">Tambah Guru Baru</h3>
+                <button type="button" onclick="adminGuruCloseModals()" class="text-slate-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <form id="admin-guru-form" onsubmit="adminGuruSave(event)" class="space-y-6">
+                    <input type="hidden" id="guru_id" name="id" value="0">
+                    
+                    <div class="flex items-center gap-6 mb-6">
+                        <div class="relative group cursor-pointer" onclick="document.getElementById('guru_foto').click()">
+                            <img id="guru_foto_preview" src="https://ui-avatars.com/api/?name=Baru" class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm transition group-hover:border-blue-500 group-hover:opacity-80">
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white">
+                                <i class="fa-solid fa-camera text-xl drop-shadow-md"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-700">Foto Profil</h4>
+                            <p class="text-xs text-slate-500 mb-2">JPG, PNG maksimal 2MB</p>
+                            <input type="file" id="guru_foto" name="file_foto" accept="image/png, image/jpeg" class="text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onchange="adminGuruPreviewFoto(this)">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">NIP <span class="text-red-500">*</span></label>
+                            <input type="text" id="guru_nip" name="nip" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Status Pegawai <span class="text-red-500">*</span></label>
+                            <select id="guru_status_pegawai" name="status_pegawai" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                                <option value="GTT">GTT (Guru Tidak Tetap)</option>
+                                <option value="PNS">PNS</option>
+                                <option value="Honorer">Honorer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap & Gelar <span class="text-red-500">*</span></label>
+                            <input type="text" id="guru_nama" name="nama" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="guru_email" name="email" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">No. Telepon / WhatsApp</label>
+                            <input type="tel" id="guru_no_telepon" name="no_telepon" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Tgl Lahir</label>
+                                <input type="date" id="guru_tanggal_lahir" name="tanggal_lahir" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Gender</label>
+                                <select id="guru_jenis_kelamin" name="jenis_kelamin" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                                    <option value="">--Pilih--</option>
+                                    <option value="L">Laki-Laki</option>
+                                    <option value="P">Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Alamat</label>
+                        <textarea id="guru_alamat" name="alamat" rows="2" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"></textarea>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Mata Pelajaran <span class="text-red-500">*</span></label>
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 max-h-32 overflow-y-auto custom-scrollbar space-y-2">
+                                <!-- Dummy mapel options -->
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="mata_pelajaran_ids[]" value="1" class="w-4 h-4 text-blue-600 rounded border-slate-300"> Matematika</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="mata_pelajaran_ids[]" value="2" class="w-4 h-4 text-blue-600 rounded border-slate-300"> Bahasa Indonesia</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="mata_pelajaran_ids[]" value="3" class="w-4 h-4 text-blue-600 rounded border-slate-300"> Bahasa Inggris</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="mata_pelajaran_ids[]" value="4" class="w-4 h-4 text-blue-600 rounded border-slate-300"> IPA</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="mata_pelajaran_ids[]" value="5" class="w-4 h-4 text-blue-600 rounded border-slate-300"> IPS</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Kelas Ampuan</label>
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 max-h-32 overflow-y-auto custom-scrollbar grid grid-cols-2 gap-2">
+                                <!-- Dummy kelas options -->
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="kelas_ampuan_ids[]" value="1" class="w-4 h-4 text-blue-600 rounded border-slate-300"> 7A</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="kelas_ampuan_ids[]" value="2" class="w-4 h-4 text-blue-600 rounded border-slate-300"> 7B</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="kelas_ampuan_ids[]" value="3" class="w-4 h-4 text-blue-600 rounded border-slate-300"> 8A</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="kelas_ampuan_ids[]" value="4" class="w-4 h-4 text-blue-600 rounded border-slate-300"> 8B</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="kelas_ampuan_ids[]" value="5" class="w-4 h-4 text-blue-600 rounded border-slate-300"> 9A</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" name="kelas_ampuan_ids[]" value="6" class="w-4 h-4 text-blue-600 rounded border-slate-300"> 9B</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mt-4 hidden" id="guru_status_container">
+                        <input type="checkbox" id="guru_is_active" name="is_active" value="1" class="w-4 h-4 text-blue-600 rounded border-slate-300 cursor-pointer" checked>
+                        <label for="guru_is_active" class="text-sm font-bold text-slate-700 cursor-pointer">Status Aktif</label>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
+                        <button type="button" onclick="adminGuruCloseModals()" class="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition">Batal</button>
+                        <button type="submit" id="admin-guru-btn-save" class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-save"></i> Simpan Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

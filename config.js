@@ -1,5 +1,5 @@
 /**
- * config.js — Konfigurasi Frontend EduGuardian
+ * config.js — Konfigurasi Frontend SIPENDAWA
  *
  * CARA MENDAPATKAN GOOGLE_CLIENT_ID:
  * 1. Buka https://console.cloud.google.com/
@@ -10,9 +10,12 @@
  * 6. Authorized JavaScript origins tambahkan:
  *      - http://localhost
  *      - http://uts_pemograman.test
- *      - http://localhost:80
- * 7. Klik Create → Salin Client ID
- * 8. Tempel di bawah ini (ganti teks placeholder)
+ *      - https://sipendawa.rf.gd        ← PRODUCTION
+ * 7. Authorized redirect URIs tambahkan:
+ *      - https://sipendawa.rf.gd/google-callback.html
+ *      - https://sipendawa.rf.gd/api/auth/google.php
+ * 8. Klik Create → Salin Client ID
  */
 
-const GOOGLE_CLIENT_ID = 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '540228165992-ghrlknt7a9s22mllknl7kqn4o1knvoc1.apps.googleusercontent.com';
+

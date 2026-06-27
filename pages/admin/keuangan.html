@@ -1,0 +1,174 @@
+<!-- /pages/admin/keuangan.html -->
+<div class=" h-full flex flex-col gap-6 relative pb-10">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Tata Usaha &rarr; Keuangan</div>
+            <h2 class="text-2xl font-bold text-slate-900">Kelola Keuangan</h2>
+            <p class="text-sm text-slate-500 mt-1">Pantau tagihan siswa, verifikasi pembayaran, dan kirim pengingat</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="adminKeuanganOpenCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-md shadow-blue-500/20 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Buat Tagihan Baru
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Total Pendapatan</p>
+                <p id="adm-keu-total-pendapatan" class="text-2xl font-black text-emerald-600">Rp 0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-vault"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-amber-300 transition-colors" onclick="adminKeuanganFilter('Menunggu Konfirmasi')">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Menunggu Konfirmasi</p>
+                <p id="adm-keu-menunggu" class="text-2xl font-black text-amber-500">0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fa-solid fa-file-invoice"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-red-300 transition-colors" onclick="adminKeuanganFilter('Belum bayar,Overdue')">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Total Tunggakan</p>
+                <p id="adm-keu-total-tunggakan" class="text-2xl font-black text-red-600">Rp 0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 flex flex-col min-h-0">
+        <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0" id="adm-keu-filters">
+                <button onclick="adminKeuanganFilter('')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors bg-slate-800 text-white filter-btn" data-filter="">Semua</button>
+                <button onclick="adminKeuanganFilter('Menunggu Konfirmasi')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 filter-btn" data-filter="Menunggu Konfirmasi">Perlu Cek</button>
+                <button onclick="adminKeuanganFilter('Overdue')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 filter-btn" data-filter="Overdue">Overdue</button>
+                <button onclick="adminKeuanganFilter('Lunas')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 filter-btn" data-filter="Lunas">Lunas</button>
+            </div>
+            <div class="relative w-full md:w-64">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="adm-keu-search" placeholder="Cari nama/NISN/tagihan..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-6 py-4">Siswa</th>
+                        <th class="px-6 py-4">Tagihan</th>
+                        <th class="px-6 py-4">Nominal</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="adm-keu-tbody" class="divide-y divide-slate-100">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Create Tagihan -->
+<div id="modal-adm-keu-create" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+            <h3 class="font-bold text-slate-800 text-lg">Buat Tagihan Baru</h3>
+            <button onclick="adminKeuanganCloseCreateModal()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-6 overflow-y-auto">
+            <form id="form-adm-keu-create" onsubmit="adminKeuanganSubmitCreate(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Siswa</label>
+                    <select id="inp-keu-siswa" required class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none">
+                        <option value="">Memuat data siswa...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Tagihan</label>
+                    <input type="text" id="inp-keu-tipe" required placeholder="Contoh: SPP Juli 2026, Biaya Ujian" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nominal (Rp)</label>
+                    <input type="number" id="inp-keu-jumlah" required min="1000" placeholder="Contoh: 500000" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Batas Jatuh Tempo</label>
+                    <input type="date" id="inp-keu-tempo" required class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Catatan Tambahan (Opsional)</label>
+                    <textarea id="inp-keu-catatan" rows="2" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none" placeholder="Tuliskan jika ada rincian khusus..."></textarea>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" onclick="adminKeuanganCloseCreateModal()" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
+                    <button type="submit" id="btn-submit-keu" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Tagihan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Verifikasi -->
+<div id="modal-adm-keu-verify" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+            <h3 class="font-bold text-slate-800 text-lg">Verifikasi Bukti Pembayaran</h3>
+            <button onclick="adminKeuanganCloseVerifyModal()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-6 overflow-y-auto flex flex-col lg:flex-row gap-6">
+            <!-- Left: Bukti Image -->
+            <div class="w-full lg:w-1/2 flex flex-col bg-slate-50 rounded-xl p-2 border border-slate-200">
+                <div id="verif-preview-container" class="w-full h-64 lg:h-80 bg-slate-200 rounded-lg overflow-hidden flex items-center justify-center relative group">
+                    <img id="verif-img" src="" class="w-full h-full object-contain cursor-zoom-in hidden" onclick="window.open(this.src, '_blank')">
+                    <iframe id="verif-pdf" src="" class="w-full h-full hidden"></iframe>
+                    <div id="verif-empty" class="text-slate-400 flex flex-col items-center">
+                        <i class="fa-solid fa-image text-3xl mb-2"></i>
+                        <span class="text-xs font-bold">Bukti tidak tersedia</span>
+                    </div>
+                </div>
+                <button onclick="window.open(document.getElementById('verif-img').src || document.getElementById('verif-pdf').src, '_blank')" class="mt-2 text-xs font-bold text-blue-600 hover:underline text-center"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Layar Penuh</button>
+            </div>
+            
+            <!-- Right: Details -->
+            <div class="w-full lg:w-1/2 flex flex-col justify-between">
+                <div>
+                    <h4 id="verif-siswa" class="text-xl font-bold text-slate-800 mb-1">Nama Siswa</h4>
+                    <p id="verif-tipe" class="text-sm text-slate-500 font-medium mb-4">Tipe Tagihan</p>
+                    
+                    <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-100 mb-4 text-center">
+                        <p class="text-xs text-blue-500 font-bold uppercase mb-1">Nominal yang harus dibayar</p>
+                        <p id="verif-jumlah" class="text-2xl font-black text-blue-700">Rp 0</p>
+                    </div>
+                    
+                    <div class="space-y-2 mb-4">
+                        <p class="text-xs text-slate-500 font-bold">Catatan Wali Murid / Admin:</p>
+                        <div id="verif-catatan" class="text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 italic min-h-[60px]">-</div>
+                    </div>
+
+                    <!-- Input alasan tolak -->
+                    <div id="box-tolak" class="hidden mb-4">
+                        <label class="block text-xs font-bold text-red-500 uppercase mb-1">Alasan Penolakan</label>
+                        <textarea id="inp-verif-alasan" rows="2" class="w-full px-3 py-2 border border-red-200 rounded-lg text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" placeholder="Contoh: Bukti transfer buram atau nominal tidak sesuai..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                    <button id="btn-verif-reject" onclick="adminKeuanganProcessVerify('reject')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition-colors border border-red-200">
+                        <i class="fa-solid fa-xmark"></i> Tolak
+                    </button>
+                    <button id="btn-verif-approve" onclick="adminKeuanganProcessVerify('approve')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-check"></i> Setujui (Lunas)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

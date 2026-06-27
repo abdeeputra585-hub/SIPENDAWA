@@ -1,0 +1,39 @@
+# ============================================================
+# .gitignore — EduGuardian / SIPENDAWA
+# ============================================================
+
+# File environment (RAHASIA - jangan di-commit!)
+.env
+.env.production
+.env.local
+.env.*.local
+
+# File debug & test (tidak perlu di production)
+test_db.php
+test_db2.php
+test_insert.php
+test_detail.php
+debug_query.php
+setup_db.php
+describe.php
+desc_pengumuman.php
+
+# File temporary
+*.log
+*.tmp
+
+# Folder uploads (opsional, tergantung kebutuhan)
+# uploads/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+*.zip
+upload_*.php
+check_*.php
+test_*.php
+run_check_*.php

@@ -43,7 +43,7 @@ switch ($method) {
                 $ownCheck->close();
             }
 
-            $sql  = "SELECT s.id, s.nisn, s.nama, s.kelas, s.jenis_kelamin, s.status, s.alamat, s.created_at,
+            $sql  = "SELECT s.id, s.nisn, s.nama, s.tanggal_lahir, s.kelas, s.jenis_kelamin, s.status, s.alamat, s.created_at,
                          GROUP_CONCAT(CONCAT(w.nama, '|', r.tipe, '|', IFNULL(w.email,''), '|', IFNULL(w.telepon,'')) SEPARATOR ';;') as wali_info
                      FROM siswa s
                      LEFT JOIN relasi r ON s.id = r.siswa_id
@@ -194,13 +194,14 @@ switch ($method) {
         }
         $checkStmt->close();
 
-        $status = $input['status'] ?? 'Aktif';
-        $alamat = $input['alamat'] ?? '';
+        $status        = $input['status']        ?? 'Aktif';
+        $alamat        = $input['alamat']         ?? '';
+        $tanggal_lahir = $input['tanggal_lahir']  ?? null;
 
-        $sql  = "INSERT INTO siswa (nisn, nama, kelas, jenis_kelamin, status, alamat) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql  = "INSERT INTO siswa (nisn, nama, tanggal_lahir, kelas, jenis_kelamin, status, alamat) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         if (!$stmt) sendResponse(['success' => false, 'message' => 'Database error'], 500);
-        $stmt->bind_param("ssssss", $input['nisn'], $input['nama'], $input['kelas'], $input['jenis_kelamin'], $status, $alamat);
+        $stmt->bind_param("sssssss", $input['nisn'], $input['nama'], $tanggal_lahir, $input['kelas'], $input['jenis_kelamin'], $status, $alamat);
 
         if ($stmt->execute()) {
             sendResponse(['success' => true, 'message' => 'Siswa berhasil ditambahkan', 'data' => ['id' => $conn->insert_id]], 201);
@@ -222,6 +223,7 @@ switch ($method) {
 
         if (isset($input['nisn']))          { $fields[] = "nisn = ?";          $types .= 's'; $values[] = $input['nisn']; }
         if (isset($input['nama']))          { $fields[] = "nama = ?";          $types .= 's'; $values[] = $input['nama']; }
+        if (array_key_exists('tanggal_lahir', $input)) { $fields[] = "tanggal_lahir = ?"; $types .= 's'; $values[] = $input['tanggal_lahir'] ?: null; }
         if (isset($input['kelas']))         { $fields[] = "kelas = ?";         $types .= 's'; $values[] = $input['kelas']; }
         if (isset($input['jenis_kelamin'])) { $fields[] = "jenis_kelamin = ?"; $types .= 's'; $values[] = $input['jenis_kelamin']; }
         if (isset($input['status']))        { $fields[] = "status = ?";        $types .= 's'; $values[] = $input['status']; }

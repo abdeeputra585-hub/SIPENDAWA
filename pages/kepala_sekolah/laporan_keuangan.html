@@ -1,0 +1,68 @@
+<!-- pages/kepala_sekolah/laporan_keuangan.html -->
+<div class=" space-y-6 animate-fade-in">
+    <div>
+        <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Kepala Sekolah &rarr; Keuangan</div>
+        <h2 class="text-xl font-bold text-slate-900">Monitor Status Pembayaran Siswa</h2>
+        <p class="text-sm text-slate-500 mt-1">Ringkasan status pembayaran seluruh siswa secara real-time.</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Total Tagihan</p>
+                <p id="kepsek-keu-total" class="text-2xl font-black text-slate-800">Rp 0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-xl"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Sudah Lunas</p>
+                <p id="kepsek-keu-lunas" class="text-2xl font-black text-emerald-600">Rp 0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-check-circle"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Menunggu Verifikasi</p>
+                <p id="kepsek-keu-menunggu" class="text-2xl font-black text-amber-500">0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fa-solid fa-clock"></i></div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Total Tunggakan</p>
+                <p id="kepsek-keu-tunggakan" class="text-2xl font-black text-red-600">Rp 0</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50">
+            <h3 class="font-bold text-slate-800"><i class="fa-solid fa-list mr-2 text-blue-500"></i>Daftar Semua Tagihan</h3>
+            <div class="relative w-full md:w-64">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="kepsek-keu-search" placeholder="Cari siswa..." oninput="kepsekKeuanganSearch()" class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none transition-all">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4">Siswa</th>
+                        <th class="px-6 py-4">Tagihan</th>
+                        <th class="px-6 py-4">Nominal</th>
+                        <th class="px-6 py-4">Jatuh Tempo</th>
+                        <th class="px-6 py-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="kepsek-keu-tbody" class="divide-y divide-slate-100">
+                    <!-- Data loaded by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

@@ -132,17 +132,17 @@ switch ($type) {
         break;
 
     case 'profil':
-        // Update foto di tabel users (user yang sedang login)
+        // Update avatar di tabel users (user yang sedang login)
         $targetId = $recordId ?: $userId;
 
-        $old = $conn->prepare("SELECT foto FROM users WHERE id = ?");
+        $old = $conn->prepare("SELECT avatar FROM users WHERE id = ?");
         $old->bind_param("i", $targetId);
         $old->execute();
         $oldRow = $old->get_result()->fetch_assoc();
         $old->close();
-        if ($oldRow) $oldFoto = $oldRow['foto'];
+        if ($oldRow) $oldFoto = $oldRow['avatar'];
 
-        $stmt = $conn->prepare("UPDATE users SET foto = ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE users SET avatar = ? WHERE id = ?");
         $stmt->bind_param("si", $webPath, $targetId);
         $updated = $stmt->execute() && $stmt->affected_rows > 0;
         $stmt->close();

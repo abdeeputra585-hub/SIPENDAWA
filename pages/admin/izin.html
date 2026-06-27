@@ -1,0 +1,150 @@
+<!-- /pages/admin/izin.html -->
+<div class=" space-y-6 animate-fade-in relative pb-20">
+    
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Admin Panel &rarr; Kehadiran</div>
+            <h2 class="text-2xl font-bold text-slate-900">Kurasi Pengajuan Izin</h2>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="adminIzinShowTab('pending')" id="tab-izin-pending" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-sm">
+                Antrean (Pending)
+            </button>
+            <button onclick="adminIzinShowTab('history')" id="tab-izin-history" class="px-5 py-2.5 bg-white text-slate-600 border border-slate-200 rounded-xl text-sm font-bold hover:bg-slate-50 transition shadow-sm">
+                Riwayat Selesai
+            </button>
+        </div>
+    </div>
+
+    <!-- PENDING VIEW -->
+    <div id="admin-izin-pending-view" class="space-y-4">
+        <!-- BULK ACTION BAR -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <input type="checkbox" id="izin-check-all" onchange="adminIzinToggleAll()" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
+                <span class="text-sm font-bold text-slate-700" id="izin-selected-count">0 Terpilih</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="adminIzinOpenBulkModal('Approved')" class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl text-sm font-bold hover:bg-emerald-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Setujui
+                </button>
+                <button onclick="adminIzinOpenBulkModal('Rejected')" class="px-4 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-bold hover:bg-red-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-xmark"></i> Tolak
+                </button>
+            </div>
+        </div>
+
+        <!-- PENDING TABLE -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-4 border-b border-slate-200 w-10 text-center"></th>
+                            <th class="px-6 py-4 border-b border-slate-200">Siswa & Wali</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Tipe & Tanggal</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Alasan</th>
+                            <th class="px-6 py-4 border-b border-slate-200 text-center">Bukti</th>
+                            <th class="px-6 py-4 border-b border-slate-200 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-izin-pending-tbody" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="text-center py-10 text-slate-400"><i class="fa-solid fa-spinner animate-spin text-2xl text-blue-500 mb-2"></i><br>Memuat antrean...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="admin-izin-history-view" class="hidden space-y-4">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4 border-b border-slate-200">Siswa & Wali</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Tipe & Tanggal</th>
+                            <th class="px-6 py-4 border-b border-slate-200 text-center">Status</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Diperiksa Oleh</th>
+                            <th class="px-6 py-4 border-b border-slate-200 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-izin-history-tbody" class="divide-y divide-slate-100">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- PAGINATION -->
+            <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div id="admin-izin-page-info" class="text-xs text-slate-500 font-medium">Menampilkan 0 data</div>
+                <div id="admin-izin-pagination" class="flex gap-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ACTION (APPROVE/REJECT) -->
+    <div id="modal-admin-izin-action" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 id="admin-izin-modal-title" class="font-bold text-lg text-slate-800">Proses Izin</h3>
+                <button type="button" onclick="adminIzinCloseActionModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="admin-izin-action-form" onsubmit="adminIzinSubmitAction(event)">
+                    <input type="hidden" id="admin_izin_action_type" value="">
+                    <input type="hidden" id="admin_izin_action_ids" value="">
+                    
+                    <div id="admin-izin-action-info" class="mb-4 text-sm font-bold text-slate-700 bg-blue-50 text-blue-800 p-3 rounded-xl border border-blue-100"></div>
+
+                    <div class="space-y-1 mb-6">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Catatan (Opsional) <span id="admin_izin_action_req" class="text-red-500 hidden">* Wajib</span></label>
+                        <textarea id="admin_izin_action_catatan" rows="3" placeholder="Tulis catatan persetujuan atau alasan penolakan..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="adminIzinCloseActionModal()" class="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition">Batal</button>
+                        <button type="submit" id="admin-izin-btn-submit" class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition">
+                            Konfirmasi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL BUKTI -->
+    <div id="modal-admin-izin-detail" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300" onclick="if(event.target===this) adminIzinCloseDetail()">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Bukti Pengajuan</h3>
+                <button type="button" onclick="adminIzinCloseDetail()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar bg-slate-50" id="admin-izin-detail-content">
+                <!-- image or link -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL RIWAYAT -->
+    <div id="modal-admin-izin-history-detail" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300" onclick="if(event.target===this) adminIzinCloseHistoryDetail()">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Detail Riwayat Izin</h3>
+                <button type="button" onclick="adminIzinCloseHistoryDetail()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar bg-slate-50" id="admin-izin-history-detail-content">
+                <!-- content injected here -->
+            </div>
+        </div>
+    </div>
+
+</div>
+

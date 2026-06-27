@@ -1,0 +1,106 @@
+<!-- /pages/pesan.html -->
+<!-- PAGE pesan (Komponen Obrolan Terpadu SIPENDAWA) -->
+<div class=" h-full flex-col md:flex-row gap-4 bg-slate-50 relative pb-10">
+    <!-- pesan SIDEBAR (Kontak/Percakapan) -->
+    <div class="w-full md:w-1/3 bg-white border border-slate-200 rounded-2xl shadow-2xs flex flex-col h-[calc(100vh-10rem)]">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+            <h3 class="font-bold text-slate-800">Pesan SIPENDAWA</h3>
+            <button onclick="showpesanContacts()" class="text-blue-600 hover:text-blue-800 text-sm" title="Mulai Obrolan Baru">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+        </div>
+        <div class="p-3 border-b border-slate-100">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" id="pesan-search-input" onkeyup="filterpesanList()" placeholder="Cari percakapan..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 transition-all">
+            </div>
+        </div>
+        <div id="pesan-list-container" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            <div class="text-center text-xs text-slate-500 py-10">
+                <i class="fa-solid fa-spinner animate-spin text-blue-500"></i> Memuat percakapan...
+            </div>
+        </div>
+    </div>
+
+    <!-- pesan MAIN ROOM -->
+    <div class="w-full md:w-2/3 bg-white border border-slate-200 rounded-2xl shadow-2xs flex flex-col h-[calc(100vh-10rem)] relative">
+        
+        <!-- State: Belum ada pesan terpilih -->
+        <div id="pesan-empty-state" class="flex-1 flex flex-col items-center justify-center text-center p-8">
+            <div class="w-20 h-20 bg-fuchsia-50 text-fuchsia-400 rounded-full flex items-center justify-center text-3xl mb-4">
+                <i class="fa-regular fa-comments"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-700">Pusat Pesan SIPENDAWA</h3>
+            <p class="text-xs text-slate-500 mt-2 max-w-sm">Pilih percakapan dari daftar di sebelah kiri atau mulai obrolan baru dengan guru/wali untuk terhubung secara real-time.</p>
+        </div>
+
+        <!-- State: pesan Aktif -->
+        <div id="pesan-active-state" class="hidden flex-1 flex flex-col h-full">
+            <!-- pesan Header -->
+            <div class="p-4 border-b border-slate-100 flex items-center gap-3 bg-white rounded-t-2xl shrink-0">
+                <button class="md:hidden text-slate-400 hover:text-slate-600 px-2" onclick="closepesanRoomMobile()">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <img id="pesan-room-avatar" src="https://ui-avatars.com/api/?name=User" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200">
+                <div>
+                    <h4 id="pesan-room-name" class="font-bold text-sm text-slate-800">Nama Kontak</h4>
+                    <div id="pesan-room-role" class="text-3xs text-fuchsia-600 uppercase tracking-wider font-bold">Role</div>
+                </div>
+            </div>
+
+            <!-- pesan Messages Area -->
+            <div id="pesan-messages-container" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 bg-slate-50/50 flex flex-col-reverse">
+                <!-- Messages injected here -->
+            </div>
+
+            <!-- pesan Input Box -->
+            <div class="p-4 border-t border-slate-100 bg-white rounded-b-2xl shrink-0 relative">
+                <!-- Attachment Preview -->
+                <div id="pesan-attachment-preview" class="hidden absolute bottom-full left-4 bg-white border border-slate-200 shadow-lg rounded-xl p-3 flex items-center gap-3 text-xs z-10 mb-2">
+                    <i class="fa-solid fa-file-lines text-fuchsia-500 text-2xl"></i>
+                    <div class="flex-1 min-w-[150px]">
+                        <div id="pesan-attach-name" class="font-bold text-slate-700 truncate max-w-[200px]">filename.jpg</div>
+                        <div id="pesan-attach-size" class="text-3xs text-slate-400">0 KB</div>
+                    </div>
+                    <button type="button" onclick="cancelpesanAttachment()" class="text-red-400 hover:text-red-600 p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form id="pesan-send-form" onsubmit="submitpesanMessage(event)" class="flex gap-2 items-end relative">
+                    <label class="cursor-pointer text-slate-400 hover:text-fuchsia-600 transition-colors p-2 shrink-0" title="Lampirkan File (Maks 5MB)">
+                        <i class="fa-solid fa-paperclip text-lg"></i>
+                        <input type="file" id="pesan-file-input" onchange="previewpesanAttachment(this)" class="hidden" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
+                    </label>
+                    
+                    <textarea id="pesan-text-input" rows="1" placeholder="Ketik pesan Anda di sini..." class="w-full bg-slate-100 border-none rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-fuchsia-500 resize-none custom-scrollbar" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); document.getElementById('pesan-send-form').dispatchEvent(new Event('submit')); }"></textarea>
+                    
+                    <button type="submit" id="pesan-send-btn" class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-full w-10 h-10 flex items-center justify-center shrink-0 transition-all shadow-md">
+                        <i class="fa-solid fa-paper-plane text-sm translate-x-[-1px] translate-y-[1px]"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Kontak pesan Baru -->
+<div id="modal-pesan-contacts" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transform transition-all p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg text-slate-800">Mulai Percakapan Baru</h3>
+            <button onclick="closepesanContacts()" class="text-slate-400 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        <div class="mb-4">
+            <input type="text" id="pesan-contact-search" onkeyup="filterpesanContacts()" placeholder="Cari nama kontak..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-fuchsia-500">
+        </div>
+        <div id="pesan-contacts-list" class="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
+            <!-- Contacts injected here -->
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,146 @@
+<!-- /pages/parent/dashboard.html -->
+<div class=" space-y-6">
+    <!-- Header Section -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white shadow-xl shadow-blue-900/20">
+        <!-- Abstract Shapes -->
+        <div class="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h2 class="text-3xl font-bold tracking-tight mb-2">Selamat datang, <span id="dash-parent-name" class="text-blue-200"></span>! 👋</h2>
+                <p class="text-blue-100 text-sm max-w-lg">Pantau perkembangan akademik, keuangan, dan informasi terbaru mengenai buah hati Anda dengan mudah di SIPENDAWA.</p>
+            </div>
+            
+            <!-- Child Selector -->
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl flex items-center gap-3 shrink-0">
+                <img id="dash-child-avatar" src="https://ui-avatars.com/api/?name=Anak" class="w-12 h-12 rounded-xl object-cover shadow-inner bg-white">
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase tracking-widest text-blue-200 font-bold">Melihat data untuk:</span>
+                    <select id="dash-child-selector" onchange="switchDashboardChild(this.value)" class="bg-transparent text-white font-bold text-lg outline-none cursor-pointer appearance-none pr-6 custom-select-arrow" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right center; background-size: 10px;">
+                        <option class="text-slate-800" value="0">Memuat anak...</option>
+                    </select>
+                    <span id="dash-child-kelas" class="text-xs text-blue-100">Kelas -</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Rata-rata Nilai -->
+        <div class="bg-white p-5 rounded-3xl shadow-2xs border border-slate-100 hover:shadow-md hover:border-emerald-200 transition-all group cursor-default relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Rata-rata Nilai</h3>
+                <div class="text-2xl font-black text-slate-800" id="dash-stat-nilai">0.0</div>
+            </div>
+        </div>
+
+        <!-- Persentase Kehadiran -->
+        <div class="bg-white p-5 rounded-3xl shadow-2xs border border-slate-100 hover:shadow-md hover:border-blue-200 transition-all group cursor-default relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-4 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Kehadiran</h3>
+                <div class="text-2xl font-black text-slate-800"><span id="dash-stat-hadir">0</span>%</div>
+            </div>
+        </div>
+
+        <!-- Tagihan/Tunggakan -->
+        <div class="bg-white p-5 rounded-3xl shadow-2xs border border-slate-100 hover:shadow-md hover:border-rose-200 transition-all group cursor-default relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-rose-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-xl mb-4 group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Tunggakan SPP</h3>
+                <div class="text-2xl font-black text-slate-800" id="dash-stat-tunggakan">Rp 0</div>
+            </div>
+        </div>
+
+        <!-- Pesan Baru -->
+        <div class="bg-white p-5 rounded-3xl shadow-2xs border border-slate-100 hover:shadow-md hover:border-fuchsia-200 transition-all group cursor-default relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-fuchsia-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-fuchsia-100 text-fuchsia-600 rounded-2xl flex items-center justify-center text-xl mb-4 group-hover:bg-fuchsia-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Pesan Guru</h3>
+                <div class="text-2xl font-black text-slate-800" id="dash-stat-pesan">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Kolom Bawah -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Kolom Kiri: Notifikasi Terbaru -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-3xl shadow-2xs border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800">Notifikasi Terkini</h3>
+                    </div>
+                    <button onclick="switchTab('notifikasi')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800">Lihat Semua</button>
+                </div>
+                <div id="dash-notif-container" class="divide-y divide-slate-100 max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <div class="text-center py-10 text-slate-500 text-sm">
+                        <i class="fa-solid fa-spinner animate-spin text-indigo-500 text-2xl mb-2"></i><br>Memuat notifikasi...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom Kanan: Akses Cepat (Quick Actions) -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-3xl shadow-2xs border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800"><i class="fa-solid fa-bolt text-amber-500 mr-2"></i> Akses Cepat</h3>
+                </div>
+                <div class="p-3 grid grid-cols-2 gap-3">
+                    
+                    <button onclick="switchTab('parent-pembayaran')" class="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white transition-colors group">
+                        <i class="fa-solid fa-wallet text-2xl group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold text-center">Bayar<br>Tagihan</span>
+                    </button>
+                    
+                    <button onclick="switchTab('parent-izin')" class="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white transition-colors group">
+                        <i class="fa-solid fa-calendar-plus text-2xl group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold text-center">Buat Surat<br>Izin</span>
+                    </button>
+                    
+                    <button onclick="switchTab('pesan')" class="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-600 hover:text-white transition-colors group">
+                        <i class="fa-solid fa-comment-dots text-2xl group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold text-center">Hubungi<br>Guru</span>
+                    </button>
+                    
+                    <button onclick="switchTab('parent-nilai')" class="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-colors group">
+                        <i class="fa-solid fa-book-open text-2xl group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold text-center">Laporan<br>Nilai</span>
+                    </button>
+
+                </div>
+            </div>
+            
+            <!-- Info Card -->
+            <div class="rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-lg relative overflow-hidden">
+                <i class="fa-solid fa-shield-halved text-6xl absolute -right-4 -bottom-4 text-slate-700/50"></i>
+                <div class="relative z-10">
+                    <h3 class="font-bold text-lg mb-2">Pusat Bantuan</h3>
+                    <p class="text-xs text-slate-400 mb-4">Butuh bantuan teknis terkait portal? Hubungi admin IT sekolah.</p>
+                    <a href="mailto:admin@school.id" class="inline-flex items-center justify-center w-full py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-colors">Hubungi Admin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
