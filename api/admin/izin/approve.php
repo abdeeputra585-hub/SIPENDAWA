@@ -42,9 +42,10 @@ foreach ($ids as $id) {
             
             while ($mulai <= $selesai) {
                 $tgl = $mulai->format('Y-m-d');
-                $stmtKeh = $conn->prepare("INSERT INTO kehadiran_siswa (siswa_id, tanggal, status, keterangan) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE status=?, keterangan=?");
+                $conn->query("DELETE FROM kehadiran WHERE siswa_id = {$req['id_siswa']} AND tanggal = '$tgl'");
+                $stmtKeh = $conn->prepare("INSERT INTO kehadiran (siswa_id, tanggal, status, keterangan) VALUES (?, ?, ?, ?)");
                 $ket = "Disetujui dari pengajuan (ID: $id)";
-                $stmtKeh->bind_param("isssss", $req['id_siswa'], $tgl, $stsHadir, $ket, $stsHadir, $ket);
+                $stmtKeh->bind_param("isss", $req['id_siswa'], $tgl, $stsHadir, $ket);
                 $stmtKeh->execute();
                 $mulai->modify('+1 day');
             }

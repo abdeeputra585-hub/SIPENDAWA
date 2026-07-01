@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,16 +10,11 @@
     <style>
         body[data-role="kepala_sekolah"] .admin-only { display: none !important; }
     </style>
-    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- jsPDF + AutoTable untuk export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <!-- Konfigurasi Frontend (Google Client ID) -->
     <script src="config.js"></script>
     <script>
         tailwind.config = {
@@ -40,13 +34,23 @@
         }
     </script>
 </head>
-
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
-
     <div class="flex-1 flex flex-row relative min-h-0 overflow-hidden">
+        <!-- Global Initial Loader -->
+        <div id="global-loader" class="fixed inset-0 bg-slate-50 z-[200] flex flex-col items-center justify-center transition-opacity duration-500">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 animate-pulse mb-6">
+                <i class="fa-solid fa-graduation-cap text-3xl text-white"></i>
+            </div>
+            <h1 class="text-xl font-black text-slate-800 tracking-tight mb-2">SIPENDAWA</h1>
+            <div class="flex items-center gap-1.5 mt-2">
+                <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 0.15s"></div>
+                <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 0.3s"></div>
+            </div>
+        </div>
 
         <div id="route-login"
-            class="route-view hidden fixed inset-0 w-full h-full bg-white flex flex-col md:flex-row z-[100]">
+            class="route-view fixed inset-0 w-full h-full bg-white flex flex-col md:flex-row z-[100]">
             <div
                 class="hidden md:flex md:w-1/2 text-white p-12 flex-col justify-between relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
                 <div class="z-10 flex items-center gap-2 text-lg font-bold"><i
@@ -109,8 +113,6 @@
                         <button type="submit"
                             class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-blue-700/10 flex items-center justify-center gap-2">Masuk
                             Sekarang <i class="fa-solid fa-arrow-right-to-bracket text-2xs"></i></button>
-
-                        <!-- Divider -->
                         <div class="relative my-1">
                             <div class="absolute inset-0 flex items-center">
                                 <div class="w-full border-t border-slate-200"></div>
@@ -119,11 +121,8 @@
                                 <span class="bg-white px-3 text-2xs text-slate-400 font-medium">atau masuk dengan</span>
                             </div>
                         </div>
-
-                        <!-- Google Sign-In Button -->
                         <button type="button" id="google-login-btn" onclick="signInWithGoogle()"
                             class="w-full flex items-center justify-center gap-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-all shadow-sm hover:shadow-md group">
-                            <!-- Google Logo SVG -->
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -133,8 +132,6 @@
                             <span id="google-btn-text">Masuk dengan Google</span>
                             <i id="google-btn-spinner" class="fa-solid fa-spinner animate-spin text-2xs hidden"></i>
                         </button>
-
-                        <!-- Pesan error Google -->
                         <div id="google-error-msg" class="hidden text-2xs text-red-600 text-center font-semibold bg-red-50 px-3 py-2 rounded-xl border border-red-100"></div>
                     </form>
                     <div class="pt-4 border-t border-slate-100 text-center">
@@ -146,7 +143,6 @@
                 </div>
             </div>
         </div>
-
         <div id="route-register"
             class="route-view hidden fixed inset-0 w-full h-full bg-white flex flex-col md:flex-row z-[100]">
             <div
@@ -239,15 +235,10 @@
                 </div>
             </div>
         </div>
-
-        <!-- ═══════════════════════════════════════════════════
-             MODAL UPLOAD FOTO (Universal)
-        ═══════════════════════════════════════════════════ -->
         <div id="modal-upload-foto"
             class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden"
             onclick="if(event.target===this) closeUploadFotoModal()">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in">
-                <!-- Header -->
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-y-auto max-h-[90vh] animate-in">
                 <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50">
                     <div class="flex items-center gap-2">
                         <div class="w-7 h-7 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-xs">
@@ -259,10 +250,7 @@
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
-
-                <!-- Body -->
                 <div class="p-6 space-y-4">
-                    <!-- Tab Pilihan: Upload File atau Kamera -->
                     <div class="flex p-1 bg-slate-100 rounded-lg">
                         <button onclick="switchUploadTab('file')" id="tab-upload-file"
                             class="flex-1 py-2 text-xs font-bold rounded-md transition-all bg-white text-blue-700 shadow-xs flex items-center justify-center gap-1">
@@ -273,10 +261,7 @@
                             <i class="fa-solid fa-camera"></i> Ambil Kamera
                         </button>
                     </div>
-
-                    <!-- TAB 1: UPLOAD FILE -->
                     <div id="upload-file-tab" class="space-y-4">
-                        <!-- Preview foto -->
                         <div class="flex flex-col items-center gap-3">
                             <div id="foto-preview-container"
                                 class="w-28 h-28 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full overflow-hidden border-4 border-white shadow-lg flex items-center justify-center relative group cursor-pointer"
@@ -287,15 +272,12 @@
                                     <i class="fa-solid fa-image text-2xl text-slate-400 block mb-1"></i>
                                     <p class="text-3xs text-slate-400 font-bold">Klik untuk pilih</p>
                                 </div>
-                                <!-- Overlay hover -->
                                 <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <i class="fa-solid fa-camera text-white text-xl"></i>
                                 </div>
                             </div>
                             <p class="text-3xs text-slate-400">JPG, PNG, WebP • Maks. 3MB</p>
                         </div>
-
-                        <!-- Drop zone -->
                         <div id="foto-drop-zone"
                             class="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all"
                             onclick="document.getElementById('foto-file-input').click()"
@@ -306,12 +288,8 @@
                             <p class="text-xs font-bold text-slate-500">Drag & drop foto ke sini</p>
                             <p class="text-3xs text-slate-400 mt-0.5">atau klik untuk browse</p>
                         </div>
-
-                        <!-- Hidden file input -->
                         <input type="file" id="foto-file-input" accept="image/jpeg,image/png,image/webp"
                             class="hidden" onchange="handleFotoFileSelect(event)">
-
-                        <!-- Info file terpilih -->
                         <div id="foto-file-info" class="hidden bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 flex items-center gap-2">
                             <i class="fa-solid fa-image text-blue-500 text-xs"></i>
                             <div class="flex-1 min-w-0">
@@ -323,33 +301,26 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- TAB 2: AMBIL KAMERA -->
-                    <div id="upload-camera-tab" class="hidden space-y-4">
-                        <!-- Video stream dari kamera -->
-                        <div class="flex flex-col items-center gap-3">
+                    <div id="upload-camera-tab" class="hidden space-y-3">
+                        <div class="flex flex-col items-center gap-2">
                             <video id="camera-stream" 
-                                class="w-full h-64 bg-black rounded-xl object-cover hidden"
+                                class="w-full h-44 bg-black rounded-xl object-cover hidden"
                                 playsinline autoplay muted></video>
                             <canvas id="camera-canvas" 
-                                class="w-full h-64 bg-slate-900 rounded-xl hidden"></canvas>
+                                class="w-full h-44 bg-slate-900 rounded-xl hidden"></canvas>
                             <div id="camera-placeholder" 
-                                class="w-full h-64 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex flex-col items-center justify-center text-white gap-2">
+                                class="w-full h-44 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex flex-col items-center justify-center text-white gap-2">
                                 <i class="fa-solid fa-video text-3xl text-slate-500"></i>
                                 <p class="text-sm font-bold">Kamera siap</p>
                                 <p class="text-3xs text-slate-400">Izinkan akses kamera untuk memulai</p>
                             </div>
                         </div>
-
-                        <!-- Preview capture -->
                         <div id="capture-preview-container" class="hidden flex flex-col items-center gap-3">
                             <div class="w-28 h-28 bg-slate-200 rounded-full overflow-hidden border-4 border-white shadow-lg flex items-center justify-center">
                                 <img id="capture-preview-img" src="" alt="Capture Preview" class="w-full h-full object-cover">
                             </div>
                             <p class="text-3xs text-slate-500 text-center">Preview hasil capture</p>
                         </div>
-
-                        <!-- Buttons untuk kamera -->
                         <div class="flex gap-2">
                             <button onclick="startCameraStream()" id="start-camera-btn" 
                                 class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-xs transition-all flex items-center justify-center gap-2">
@@ -366,8 +337,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Footer actions -->
                 <div class="px-6 pb-6 flex gap-3">
                     <button onclick="closeUploadFotoModal()"
                         class="flex-1 border border-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-all">
@@ -384,13 +353,10 @@
                 </div>
             </div>
         </div>
-
-        <!-- MODAL: HUBUNGKAN DENGAN WALI -->
         <div id="modal-hubungkan-wali"
             class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden"
             onclick="if(event.target===this) closeHubungkanWaliModal()">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in">
-                <!-- Header -->
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-y-auto max-h-[90vh] animate-in">
                 <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-green-50 to-emerald-50">
                     <div class="flex items-center gap-2">
                         <div class="w-7 h-7 bg-green-100 text-green-700 rounded-lg flex items-center justify-center text-xs">
@@ -402,18 +368,13 @@
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
-
-                <!-- Body -->
                 <div class="p-6 space-y-4">
-                    <!-- Nama Siswa Info -->
                     <div class="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
                         <p class="text-3xs text-blue-500 font-semibold">Siswa yang akan dihubungkan:</p>
                         <p id="hubungkan-siswa-nama" class="text-xs font-bold text-blue-900">-</p>
+                        <input type="hidden" id="hubungkan-siswa-id">
                     </div>
-
-                    <!-- Form -->
                     <form id="hubungkan-form" onsubmit="submitHubungkanWali(event)" class="space-y-3">
-                        <!-- Pilih Wali -->
                         <div class="space-y-1">
                             <label class="text-3xs font-bold text-slate-500 uppercase">Pilih Wali</label>
                             <select id="hubungkan-wali-select" required
@@ -421,40 +382,38 @@
                                 <option value="">-- Pilih Wali --</option>
                             </select>
                         </div>
-
-                        <!-- Tipe Hubungan -->
                         <div class="space-y-2">
                             <label class="text-3xs font-bold text-slate-500 uppercase">Tipe Hubungan</label>
                             <div class="grid grid-cols-3 gap-2 text-center">
-                                <label class="border border-slate-200 rounded-lg p-2 cursor-pointer hover:bg-slate-50 transition-all">
-                                    <input type="radio" name="hubungkan-tipe" value="AYAH" class="hidden" checked>
-                                    <span class="text-3xs font-bold text-slate-600 block">Ayah</span>
+                                <label class="cursor-pointer block">
+                                    <input type="radio" name="hubungkan-tipe" value="AYAH" class="peer hidden" checked>
+                                    <div class="border border-slate-200 rounded-lg p-2 peer-checked:bg-blue-50 peer-checked:border-blue-400 peer-checked:text-blue-700 text-slate-600 hover:bg-slate-50 transition-all">
+                                        <span class="text-3xs font-bold block">Ayah</span>
+                                    </div>
                                 </label>
-                                <label class="border border-slate-200 rounded-lg p-2 cursor-pointer hover:bg-slate-50 transition-all">
-                                    <input type="radio" name="hubungkan-tipe" value="IBU" class="hidden">
-                                    <span class="text-3xs font-bold text-slate-600 block">Ibu</span>
+                                <label class="cursor-pointer block">
+                                    <input type="radio" name="hubungkan-tipe" value="IBU" class="peer hidden">
+                                    <div class="border border-slate-200 rounded-lg p-2 peer-checked:bg-blue-50 peer-checked:border-blue-400 peer-checked:text-blue-700 text-slate-600 hover:bg-slate-50 transition-all">
+                                        <span class="text-3xs font-bold block">Ibu</span>
+                                    </div>
                                 </label>
-                                <label class="border border-slate-200 rounded-lg p-2 cursor-pointer hover:bg-slate-50 transition-all">
-                                    <input type="radio" name="hubungkan-tipe" value="WALI" class="hidden">
-                                    <span class="text-3xs font-bold text-slate-600 block">Wali</span>
+                                <label class="cursor-pointer block">
+                                    <input type="radio" name="hubungkan-tipe" value="WALI" class="peer hidden">
+                                    <div class="border border-slate-200 rounded-lg p-2 peer-checked:bg-blue-50 peer-checked:border-blue-400 peer-checked:text-blue-700 text-slate-600 hover:bg-slate-50 transition-all">
+                                        <span class="text-3xs font-bold block">Wali</span>
+                                    </div>
                                 </label>
                             </div>
                         </div>
-
-                        <!-- Loading state -->
                         <div id="hubungkan-loading" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-lg text-3xs text-amber-800 flex items-center gap-2">
                             <i class="fa-solid fa-spinner animate-spin text-amber-600 text-xs"></i>
                             <span>Menyimpan hubungan...</span>
                         </div>
-
-                        <!-- Error state -->
                         <div id="hubungkan-error" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-3xs text-red-800">
                             <p id="hubungkan-error-text">-</p>
                         </div>
                     </form>
                 </div>
-
-                <!-- Footer -->
                 <div class="px-6 pb-6 flex gap-3">
                     <button onclick="closeHubungkanWaliModal()"
                         class="flex-1 border border-slate-200 text-slate-600 font-bold py-2.5 rounded-lg text-xs hover:bg-slate-50 transition-all">
@@ -467,7 +426,6 @@
                 </div>
             </div>
         </div>
-
             <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
             <aside id="app-sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 absolute z-50 inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
                 <div class="flex flex-col min-h-0">
@@ -486,27 +444,26 @@
                         class="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar text-xs font-semibold">
                     </nav>
                 </div>
-
-                <div class="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
-                    <div class="flex items-center gap-3 px-1">
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-3">
+                    <div class="flex items-center gap-3 px-1 mb-1">
                         <img id="user-avatar"
                             src="https://i1-c.pinimg.com/736x/66/2d/3b/662d3b6fee31baa144b04cd8b1c7a699.jpg"
                             class="w-9 h-9 rounded-full object-cover border border-slate-200 bg-slate-100"
                             alt="Profile">
                         <div class="min-w-0 flex-1">
-                            <h4 id="user-fullname" class="text-xs font-bold text-slate-900 truncate">Haryanto Putro</h4>
-                            <p id="user-role-title" class="text-3xs text-slate-400 truncate font-medium">Super
-                                Administrator</p>
+                            <h4 id="user-fullname" class="text-xs font-bold text-slate-900 truncate">Memuat...</h4>
+                            <p id="user-role-title" class="text-3xs text-slate-400 truncate font-medium">Memuat...</p>
                         </div>
                     </div>
-                    <button onclick="performLogout()"
-                        class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all"><i
-                            class="fa-solid fa-arrow-right-from-bracket text-sm"></i> Keluar Sistem</button>
+                    <button onclick="handleProfilSamping()" class="w-full flex items-center justify-center gap-2.5 px-3 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition-all shadow-sm">
+                        <i class="fa-solid fa-user-gear text-sm text-slate-500"></i> Profil Saya
+                    </button>
+                    <button onclick="performLogout()" class="w-full flex items-center justify-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-all border border-red-100">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i> Keluar Sistem
+                    </button>
                 </div>
             </aside>
-
             <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-
                 <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex justify-between items-center shrink-0">
                     <div class="flex items-center gap-3">
                         <button onclick="toggleSidebar()" class="md:hidden w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"><i class="fa-solid fa-bars"></i></button>
@@ -530,9 +487,7 @@
                                 class="fa-solid fa-gear"></i></button>
                     </div>
                 </header>
-
                 <div class="flex-1 overflow-y-auto p-6 custom-scrollbar" id="workspace-viewport">
-
                     <div id="page-admin-dashboard" class="page-view hidden space-y-6">
                         <div class="flex justify-between items-center">
                             <div>
@@ -601,10 +556,7 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- CHARTS SECTION -->
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <!-- Donut: Status Siswa -->
                             <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs">
                                 <div class="flex justify-between items-center mb-3">
                                     <h4 class="font-bold text-slate-900 text-sm">Status Siswa</h4>
@@ -619,8 +571,6 @@
                                 </div>
                                 <div id="chart-siswa-legend" class="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-3xs font-bold"></div>
                             </div>
-
-                            <!-- Donut: Status Wali -->
                             <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs">
                                 <div class="flex justify-between items-center mb-3">
                                     <h4 class="font-bold text-slate-900 text-sm">Status Wali</h4>
@@ -635,8 +585,6 @@
                                 </div>
                                 <div id="chart-wali-legend" class="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-3xs font-bold"></div>
                             </div>
-
-                            <!-- Bar: Kehadiran 6 Bulan -->
                             <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs">
                                 <div class="flex justify-between items-center mb-3">
                                     <h4 class="font-bold text-slate-900 text-sm">Kehadiran 6 Bulan</h4>
@@ -647,8 +595,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ANTRIAN VERIFIKASI WALI -->
                         <div id="antrian-verifikasi-section" class="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
                             <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
                                 <div class="flex items-center gap-2">
@@ -688,7 +634,6 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                                            <!-- Data diisi oleh loadDashboardData() dari API -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -723,9 +668,6 @@
                             </div>
                         </div>
                     </div>
-
-
-                    <!-- PAGE: ADMIN KELAS -->
                     <div id="page-admin-kelas" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-start">
                             <div>
@@ -740,8 +682,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: ADMIN MAPEL -->
                     <div id="page-admin-mapel" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-start">
                             <div>
@@ -757,8 +697,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- PAGE: ADMIN GURU -->
                     <div id="page-admin-guru" class="page-view hidden">
                         <div id="admin-guru-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -767,8 +705,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: ADMIN IZIN -->
                     <div id="page-admin-izin" class="page-view hidden">
                         <div id="admin-izin-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -777,8 +713,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: ADMIN KEUANGAN -->
                     <div id="page-admin-keuangan" class="page-view hidden">
                         <div id="admin-keuangan-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -787,8 +721,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: pesan -->
                     <div id="page-pesan" class="page-view hidden">
                         <div id="pesan-app-container" class="flex flex-col" style="min-height: 70vh;">
                             <div class="flex flex-col items-center justify-center h-full py-20 text-slate-400">
@@ -797,8 +729,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: GURU PROFIL -->
                     <div id="page-guru-profil" class="page-view hidden">
                         <div id="guru-profil-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -807,8 +737,102 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: PARENT PENGUMUMAN -->
+                    <div id="page-profil-umum" class="page-view hidden space-y-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profil Saya</h1>
+                                <p class="text-sm text-slate-500 mt-1">Kelola data informasi akun Anda</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm max-w-2xl">
+                            <form id="form-profil-umum" onsubmit="simpanProfilUmum(event)" class="space-y-4">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <img id="profil-umum-avatar-preview" src="https://ui-avatars.com/api/?name=User&background=eff6ff&color=1d4ed8" class="w-20 h-20 rounded-full object-cover border border-slate-200 shadow-sm" alt="Avatar">
+                                    <div>
+                                        <label for="profil-umum-foto" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
+                                            <i class="fa-solid fa-camera"></i> Ubah Foto
+                                        </label>
+                                        <input type="file" id="profil-umum-foto" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="uploadFotoProfil('profil-umum-foto', 'profil-umum-avatar-preview')">
+                                        <p class="text-3xs text-slate-400 mt-1">Format: JPG, PNG, WebP. Maks: 3MB.</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+                                    <input type="text" id="profil-umum-nama" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Username</label>
+                                    <input type="text" id="profil-umum-username" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Email</label>
+                                    <input type="email" id="profil-umum-email" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Ubah Password (opsional)</label>
+                                    <input type="password" id="profil-umum-password" placeholder="Kosongkan jika tidak ingin mengubah" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+                                </div>
+                                <div class="pt-4 flex justify-end">
+                                    <button type="submit" id="btn-profil-umum" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                                        <i class="fa-solid fa-save"></i> Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div id="page-parent-profil" class="page-view hidden space-y-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profil Saya</h1>
+                                <p class="text-sm text-slate-500 mt-1">Kelola data kontak dan akun wali murid</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm max-w-2xl">
+                            <form id="form-parent-profil" onsubmit="simpanParentProfil(event)" class="space-y-4">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <img id="parent-profil-avatar-preview" src="https://ui-avatars.com/api/?name=Parent&background=eff6ff&color=1d4ed8" class="w-20 h-20 rounded-full object-cover border border-slate-200 shadow-sm" alt="Avatar">
+                                    <div>
+                                        <label for="parent-profil-foto" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
+                                            <i class="fa-solid fa-camera"></i> Ubah Foto
+                                        </label>
+                                        <input type="file" id="parent-profil-foto" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="uploadFotoProfil('parent-profil-foto', 'parent-profil-avatar-preview')">
+                                        <p class="text-3xs text-slate-400 mt-1">Format: JPG, PNG, WebP. Maks: 3MB.</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Wali Murid</label>
+                                        <input type="text" id="parent-profil-nama" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Username Akun</label>
+                                        <input type="text" id="parent-profil-username" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Email Akun</label>
+                                        <input type="email" id="parent-profil-email" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Telepon</label>
+                                    <input type="tel" id="parent-profil-telepon" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Alamat Lengkap</label>
+                                    <textarea id="parent-profil-alamat" rows="2" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all" required></textarea>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Ubah Password (opsional)</label>
+                                    <input type="password" id="parent-profil-password" placeholder="Kosongkan jika tidak ingin mengubah" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+                                </div>
+                                <div class="pt-4 flex justify-end">
+                                    <button type="submit" id="btn-parent-profil" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                                        <i class="fa-solid fa-save"></i> Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <div id="page-parent-pengumuman" class="page-view hidden">
                         <div id="parent-pengumuman-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -817,8 +841,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: PARENT IZIN -->
                     <div id="page-parent-izin" class="page-view hidden">
                         <div id="parent-izin-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -827,8 +849,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: PARENT PEMBAYARAN -->
                     <div id="page-parent-pembayaran" class="page-view hidden">
                         <div id="parent-pembayaran-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -837,8 +857,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: PARENT NILAI -->
                     <div id="page-parent-nilai" class="page-view hidden space-y-6">
                         <div>
                             <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Portal Orang Tua</div>
@@ -854,8 +872,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- PAGE: PARENT CATATAN -->
                     <div id="page-parent-catatan" class="page-view hidden space-y-6">
                         <div>
                             <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Portal Orang Tua</div>
@@ -863,8 +879,6 @@
                         </div>
                         <div id="grid-parent-catatan" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"><div class="col-span-full text-center text-slate-400 text-xs py-8"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Memuat data catatan...</div></div>
                     </div>
-
-                    <!-- HALAMAN PENGUMUMAN (ADMIN) -->
                     <div id="page-admin-pengumuman" class="page-view hidden">
                         <div id="admin-pengumuman-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -873,7 +887,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div id="page-admin-siswa" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-start">
                             <div>
@@ -963,7 +976,6 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
-                                        <!-- Data diisi oleh loadSiswaData() dari API -->
                                     </tbody>
                                 </table>
                             </div>
@@ -973,13 +985,12 @@
                                         class="fa-solid fa-circle-info text-blue-500"></i>
                                     <p><span class="font-bold">Pengingat Sinkronisasi:</span> Data siswa terakhir
                                         disinkronkan dengan Dapodik 4 jam yang lalu.</p>
-                                </div><button
+                                </div><button onclick="syncDapodik()"
                                     class="bg-blue-800 text-white font-bold px-3 py-1.5 rounded-xl text-3xs hover:bg-blue-900 shadow-xs">Sinkronkan
                                     Sekarang</button>
                             </div>
                         </div>
                     </div>
-
                     <div id="page-admin-relasi" class="page-view hidden space-y-6">
                         <div>
                             <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Dashboard
@@ -989,18 +1000,13 @@
                                 jawab.</p>
                         </div>
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                            <!-- Panel Kiri: Tambah Relasi + Tambah Wali Baru -->
                             <div class="space-y-4">
-
-                                <!-- Card: Tambah Relasi Baru -->
                                 <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs space-y-4">
                                     <div
                                         class="flex items-center gap-2 border-b border-slate-100 pb-3 font-bold text-slate-900 text-sm">
                                         <i class="fa-solid fa-link text-blue-600"></i>
                                         <h4>Tambah Relasi Baru</h4>
                                     </div>
-
-                                    <!-- Tab: Pilih Existing vs Input Manual -->
                                     <div class="flex p-0.5 bg-slate-100 rounded-lg text-3xs font-bold gap-0.5">
                                         <button id="rel-tab-pilih" onclick="switchRelasiTab('pilih')"
                                             class="flex-1 py-1.5 rounded-md bg-white text-blue-700 shadow-xs transition-all">Pilih
@@ -1009,8 +1015,6 @@
                                             class="flex-1 py-1.5 rounded-md text-slate-500 transition-all">Input
                                             Manual</button>
                                     </div>
-
-                                    <!-- Panel: Pilih dari dropdown -->
                                     <form id="rel-form-pilih" onsubmit="handleRelationAjaxSubmit(event)"
                                         class="space-y-3">
                                         <div class="space-y-1"><label
@@ -1031,18 +1035,18 @@
                                             <label class="text-3xs font-bold text-slate-400 uppercase">Tipe
                                                 Hubungan</label>
                                             <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold">
-                                                <label
-                                                    class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
-                                                        type="radio" name="rel-type" value="AYAH" checked
-                                                        class="hidden"><span>Ayah</span></label>
-                                                <label
-                                                    class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
-                                                        type="radio" name="rel-type" value="IBU"
-                                                        class="hidden"><span>Ibu</span></label>
-                                                <label
-                                                    class="border border-slate-200 rounded-xl p-2 cursor-pointer hover:bg-slate-50 block"><input
-                                                        type="radio" name="rel-type" value="WALI"
-                                                        class="hidden"><span>Wali</span></label>
+                                                <label class="cursor-pointer block">
+                                                    <input type="radio" name="rel-type" value="AYAH" checked class="peer hidden">
+                                                    <div class="border border-slate-200 rounded-xl p-2 peer-checked:bg-blue-50 peer-checked:border-blue-400 peer-checked:text-blue-700 text-slate-600 hover:bg-slate-50 transition-all">Ayah</div>
+                                                </label>
+                                                <label class="cursor-pointer block">
+                                                    <input type="radio" name="rel-type" value="IBU" class="peer hidden">
+                                                    <div class="border border-slate-200 rounded-xl p-2 peer-checked:bg-blue-50 peer-checked:border-blue-400 peer-checked:text-blue-700 text-slate-600 hover:bg-slate-50 transition-all">Ibu</div>
+                                                </label>
+                                                <label class="cursor-pointer block">
+                                                    <input type="radio" name="rel-type" value="WALI" class="peer hidden">
+                                                    <div class="border border-slate-200 rounded-xl p-2 peer-checked:bg-blue-50 peer-checked:border-blue-400 peer-checked:text-blue-700 text-slate-600 hover:bg-slate-50 transition-all">Wali</div>
+                                                </label>
                                             </div>
                                         </div>
                                         <div id="rel-ajax-loader"
@@ -1056,8 +1060,6 @@
                                             <i class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Relasi
                                         </button>
                                     </form>
-
-                                    <!-- Panel: Input Manual -->
                                     <form id="rel-form-baru" onsubmit="handleRelasiManualSubmit(event)"
                                         class="hidden space-y-3">
                                         <p
@@ -1100,7 +1102,6 @@
                                                 </select>
                                             </div>
                                         </div>
-
                                         <p
                                             class="text-3xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-1 pt-1">
                                             Data Wali</p>
@@ -1152,7 +1153,6 @@
                                             <i class="fa-solid fa-floppy-disk text-2xs"></i> Simpan Semua Data
                                         </button>
                                     </form>
-
                                     <div class="bg-blue-950 text-white p-4 rounded-xl space-y-2">
                                         <p class="text-2xs font-bold text-blue-300 uppercase">Quick Insights</p>
                                         <div class="flex justify-between text-2xs"><span>Total Relasi
@@ -1163,8 +1163,6 @@
                                                 class="font-bold text-amber-400">-</span></div>
                                     </div>
                                 </div>
-
-                                <!-- Card: Tambah Wali Saja -->
                                 <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-2xs space-y-4">
                                     <button onclick="toggleTambahWaliPanel()"
                                         class="w-full flex items-center justify-between font-bold text-slate-900 text-sm">
@@ -1222,7 +1220,6 @@
                                         </form>
                                     </div>
                                 </div>
-
                             </div>
                             <div
                                 class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
@@ -1276,7 +1273,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div id="page-admin-laporan" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-center">
                             <div>
@@ -1359,7 +1355,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div id="page-profil-siswa" class="page-view hidden space-y-6">
                         <div
                             class="flex flex-col sm:flex-row gap-4 justify-between items-start border-b border-slate-200 pb-4 bg-white -mx-6 -mt-6 p-6">
@@ -1369,14 +1364,11 @@
                             </div>
                         </div>
                         <div id="profil-siswa-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                            <!-- Diisi oleh loadProfilSiswa() -->
                             <div class="lg:col-span-3 flex items-center justify-center h-40 text-xs text-slate-400">
                                 <i class="fa-solid fa-spinner animate-spin mr-2"></i> Memuat profil siswa...
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: GURU NILAI -->
                     <div id="page-guru-nilai" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-start">
                             <div>
@@ -1427,8 +1419,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- PAGE: GURU KEHADIRAN -->
                     <div id="page-guru-kehadiran" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-start">
                             <div>
@@ -1436,9 +1426,6 @@
                                 <h2 class="text-xl font-bold text-slate-900">Kehadiran Kelas</h2>
                                 <p class="text-xs text-slate-400 mt-1">Catat dan kelola kehadiran siswa di kelas Anda.</p>
                             </div>
-                            <button onclick="openModalAbsensi()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm">
-                                <i class="fa-solid fa-plus"></i> Catat Kehadiran
-                            </button>
                         </div>
                         <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-3xs flex flex-col sm:flex-row gap-4 items-end text-2xs font-bold text-slate-500">
                             <div class="flex-1">
@@ -1457,21 +1444,21 @@
                                 <thead class="bg-slate-50 border-b border-slate-200">
                                     <tr class="text-3xs font-bold text-slate-400 uppercase tracking-wider">
                                         <th class="px-6 py-3 text-left">Siswa</th>
-                                        <th class="px-4 py-3 text-left">Kelas</th>
-                                        <th class="px-4 py-3 text-left">Tanggal</th>
                                         <th class="px-4 py-3 text-center">Status</th>
-                                        <th class="px-4 py-3 text-left">Keterangan</th>
-                                        <th class="px-4 py-3 text-center">Aksi</th>
+                                        <th class="px-6 py-3 text-left">Keterangan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-guru-kehadiran" class="divide-y divide-slate-100">
-                                    <tr><td colspan="6" class="px-6 py-4 text-center text-slate-400"><i class="fa-solid fa-spinner animate-spin"></i> Memuat data...</td></tr>
+                                    <tr><td colspan="3" class="px-6 py-4 text-center text-slate-400"><i class="fa-solid fa-spinner animate-spin"></i> Memuat data...</td></tr>
                                 </tbody>
                             </table>
+                            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+                                <button onclick="simpanKehadiranMasal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-save"></i> Simpan Semua Perubahan
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: GURU CATATAN / JURNAL -->
                     <div id="page-guru-catatan" class="page-view hidden space-y-6">
                         <div class="flex flex-wrap gap-4 justify-between items-start">
                             <div>
@@ -1489,8 +1476,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- PAGE: KEPALA SEKOLAH DASHBOARD -->
                     <div id="page-kepsek-dashboard" class="page-view hidden space-y-6">
                         <div>
                             <div class="text-3xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Kepala Sekolah</div>
@@ -1503,7 +1488,6 @@
                         <div id="kepsek-charts-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
                         <div id="kepsek-tables-section" class="space-y-6"></div>
                     </div>
-
                     <div id="page-guru-jadwal" class="page-view hidden">
                         <div id="guru-jadwal-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -1512,7 +1496,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div id="page-kepsek-laporan-keuangan" class="page-view hidden">
                         <div id="kepsek-laporan-keuangan-page-container">
                             <div class="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -1521,8 +1504,6 @@
                             </div>
                         </div>
                     </div>
-
-
                     <div id="page-notifikasi" class="page-view hidden space-y-6">
                         <div class="flex justify-between items-center">
                             <div>
@@ -1560,23 +1541,13 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
-
                 <footer
                     class="h-10 bg-white border-t border-slate-200 text-center flex items-center justify-center text-3xs font-bold tracking-wider text-slate-400 uppercase shrink-0">
                     &copy; 2026 Sistem Pengelolaan Data Wali Siswa &bull; Version 1.2.0</footer>
-
-
-
-
-
             </div>
         </div>
-
     </div>
-
-    <!-- MODAL: KELAS -->
     <div id="modal-kelas" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -1587,14 +1558,12 @@
                 <input type="hidden" id="kelas-id">
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Kelas</label><input type="text" id="kelas-nama" required placeholder="cth: 7A" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"></div>
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tingkat</label><select id="kelas-tingkat" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="">-- Pilih --</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></div>
-                
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Wali Kelas</label>
                     <select id="kelas-wali" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500">
                         <option value="">-- Tidak Ada / Belum Diatur --</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Daftar Siswa di Kelas Ini</label>
                     <div class="border border-slate-200 rounded-xl p-3 h-40 overflow-y-auto bg-slate-50 space-y-2" id="kelas-siswa-list">
@@ -1602,13 +1571,10 @@
                     </div>
                     <p class="text-[10px] text-slate-400 mt-1">* Centang siswa yang masuk ke kelas ini.</p>
                 </div>
-
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-bold">Simpan</button>
             </form>
         </div>
     </div>
-
-    <!-- MODAL: LIHAT SISWA KELAS -->
     <div id="modal-lihat-siswa" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[80vh]">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
@@ -1625,8 +1591,6 @@
             </div>
         </div>
     </div>
-
-    <!-- MODAL: MATA PELAJARAN -->
     <div id="modal-mapel" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -1637,22 +1601,39 @@
                 <input type="hidden" id="mapel-id">
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kode</label><input type="text" id="mapel-kode" placeholder="cth: MTK" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"></div>
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Mata Pelajaran</label><input type="text" id="mapel-nama" required placeholder="cth: Matematika" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"></div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pilih Guru Pengampu</label>
+                    <div class="border border-slate-200 rounded-xl p-3 h-40 overflow-y-auto bg-slate-50 space-y-2" id="mapel-guru-list">
+                        <div class="text-xs text-slate-400 italic text-center py-4">Memuat daftar guru...</div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">* Centang satu atau beberapa guru yang mengajar pelajaran ini.</p>
+                </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-bold">Simpan</button>
             </form>
         </div>
     </div>
-
-    <!-- MODAL: INPUT NILAI -->
     <div id="modal-nilai" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 id="modal-nilai-title" class="font-bold text-slate-900">Input Nilai Baru</h3>
                 <button onclick="document.getElementById('modal-nilai').classList.add('hidden')" class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-400"><i class="fa-solid fa-times"></i></button>
             </div>
-            <form onsubmit="simpanNilai(event)" class="p-6 space-y-4">
+            <form id="form-nilai" onsubmit="submitNilai(event)" class="p-6 space-y-4">
                 <input type="hidden" id="nilai-id">
-                <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa</label><input type="text" id="nilai-siswa-nama" list="datalist-siswa" required placeholder="Ketik nama siswa..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><input type="hidden" id="nilai-siswa-id"><datalist id="datalist-siswa"></datalist></div>
-                <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Mata Pelajaran</label><select id="nilai-mapel-id" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="">-- Pilih Mapel --</option></select></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa</label><input type="text" id="nilai-siswa-search" list="datalist-siswa" required placeholder="Ketik nama siswa..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><input type="hidden" id="nilai-siswa"><datalist id="datalist-siswa"></datalist></div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Mata Pelajaran</label>
+                    <select id="nilai-mapel" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+                        <option value="">-- Pilih Mapel --</option>
+                        <option value="Matematika">Matematika</option>
+                        <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                        <option value="Bahasa Inggris">Bahasa Inggris</option>
+                        <option value="IPA">IPA</option>
+                        <option value="IPS">IPS</option>
+                        <option value="Pendidikan Agama">Pendidikan Agama</option>
+                        <option value="PJOK">PJOK</option>
+                    </select>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Semester</label><select id="nilai-semester" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="Ganjil">Ganjil</option><option value="Genap">Genap</option></select></div>
                     <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tahun Ajaran</label><input type="text" id="nilai-tahun" value="2025/2026" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"></div>
@@ -1666,48 +1647,42 @@
             </form>
         </div>
     </div>
-
-    <!-- MODAL: ABSENSI -->
     <div id="modal-absensi" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 class="font-bold text-slate-900">Catat Kehadiran Siswa</h3>
                 <button onclick="document.getElementById('modal-absensi').classList.add('hidden')" class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-400"><i class="fa-solid fa-times"></i></button>
             </div>
-            <form onsubmit="simpanAbsensi(event)" class="p-6 space-y-4">
+            <form id="form-absensi" onsubmit="simpanAbsensi(event)" class="p-6 space-y-4">
                 <input type="hidden" id="absensi-id">
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa</label><input type="text" id="absensi-siswa-nama" list="datalist-siswa-absensi" required placeholder="Ketik nama siswa..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><input type="hidden" id="absensi-siswa-id"><datalist id="datalist-siswa-absensi"></datalist></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tanggal</label><input type="date" id="absensi-tanggal" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"></div>
-                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</label><select id="absensi-status" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="hadir">Hadir</option><option value="sakit">Sakit</option><option value="izin">Izin</option><option value="alpha">Alpha</option></select></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</label><select id="absensi-status" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpa">Alpha</option></select></div>
                 </div>
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Keterangan</label><textarea id="absensi-keterangan" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500 resize-none"></textarea></div>
                 <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-bold">Simpan Kehadiran</button>
             </form>
         </div>
     </div>
-
-    <!-- MODAL: CATATAN PERILAKU -->
     <div id="modal-catatan" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 id="modal-catatan-title" class="font-bold text-slate-900">Tambah Catatan Perilaku</h3>
                 <button onclick="document.getElementById('modal-catatan').classList.add('hidden')" class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg text-slate-400"><i class="fa-solid fa-times"></i></button>
             </div>
-            <form onsubmit="simpanCatatan(event)" class="p-6 space-y-4">
+            <form id="form-catatan" onsubmit="submitCatatan(event)" class="p-6 space-y-4">
                 <input type="hidden" id="catatan-id">
-                <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa</label><input type="text" id="catatan-siswa-nama" list="datalist-siswa-catatan" required placeholder="Ketik nama siswa..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><input type="hidden" id="catatan-siswa-id"><datalist id="datalist-siswa-catatan"></datalist></div>
+                <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Siswa</label><input type="text" id="catatan-siswa-search" list="datalist-siswa-catatan" required placeholder="Ketik nama siswa..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><input type="hidden" id="catatan-siswa"><datalist id="datalist-siswa-catatan"></datalist></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tanggal</label><input type="date" id="catatan-tanggal" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"></div>
-                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kategori</label><select id="catatan-kategori" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="positif">Positif</option><option value="negatif">Negatif</option><option value="netral">Netral</option></select></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kategori</label><select id="catatan-tipe" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500"><option value="Positif">Positif</option><option value="Negatif">Negatif</option><option value="Info">Info</option></select></div>
                 </div>
                 <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Catatan</label><textarea id="catatan-isi" rows="3" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500 resize-none"></textarea></div>
                 <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl text-sm font-bold">Simpan Catatan</button>
             </form>
         </div>
     </div>
-
-    <!-- Module JS Files -->
     <script src="js/admin/guru.js"></script>
     <script src="js/admin/izin.js"></script>
     <script src="js/admin/keuangan.js"></script>
@@ -1720,12 +1695,7 @@
     <script src="js/parent/pengumuman.js"></script>
     <script src="js/kepala_sekolah/laporan_keuangan.js"></script>
     <script src="js/pesan.js?v=4"></script>
-    <script src="script.js?v=8"></script>
+    <script src="js/profil_all.js?v=2"></script>
+    <script src="script.js?v=12"></script>
 </body>
 </html>
-
-
-
-
-
-

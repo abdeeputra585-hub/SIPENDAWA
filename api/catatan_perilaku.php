@@ -24,7 +24,7 @@ switch ($method) {
         if ($user['role'] === 'parent') {
             if (!$siswaId) {
                 // Ambil daftar anak jika tidak dikirim siswa_id
-                $stmt = $conn->prepare("SELECT r.siswa_id FROM relasi r JOIN wali w ON r.wali_id = w.id WHERE w.user_id = ? AND r.status = 'Terverifikasi'");
+                $stmt = $conn->prepare("SELECT r.siswa_id FROM relasi r JOIN wali w ON r.wali_id = w.id JOIN users u ON w.email = u.email WHERE u.id = ?");
                 $stmt->bind_param("i", $user['user_id']);
                 $stmt->execute();
                 $res = $stmt->get_result();
@@ -49,7 +49,7 @@ switch ($method) {
                 $stmt->bind_param(str_repeat('i', count($siswaIds)), ...$siswaIds);
                 
             } else {
-                $stmt = $conn->prepare("SELECT r.id FROM relasi r JOIN wali w ON r.wali_id = w.id WHERE r.siswa_id = ? AND w.user_id = ? AND r.status = 'Terverifikasi'");
+                $stmt = $conn->prepare("SELECT r.id FROM relasi r JOIN wali w ON r.wali_id = w.id JOIN users u ON w.email = u.email WHERE r.siswa_id = ? AND u.id = ?");
                 $stmt->bind_param("ii", $siswaId, $user['user_id']);
                 $stmt->execute();
                 if ($stmt->get_result()->num_rows === 0) {

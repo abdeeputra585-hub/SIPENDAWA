@@ -8,15 +8,37 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $authUser = requireAuth(['parent']);
 $userId = (int)$authUser['user_id'];
 
-// Get wali info
-$stmt = $conn->prepare("SELECT id, nama FROM wali WHERE user_id = ?");
+// Get wali info via email join (karena user_id di tabel wali tidak selalu terisi)
+$stmt = $conn->prepare("
+    SELECT w.id, w.nama 
+    FROM wali w 
+    JOIN users u ON w.email = u.email 
+    WHERE u.id = ?
+");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $wali = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$wali) {
-    sendResponse(['success' => false, 'message' => 'Profil wali tidak ditemukan'], 404);
+    // Fallback: cek apakah ada wali dengan email yang sama
+    $stmtEmail = $conn->prepare("SELECT email FROM users WHERE id = ?");
+    $stmtEmail->bind_param("i", $userId);
+    $stmtEmail->execute();
+    $userRow = $stmtEmail->get_result()->fetch_assoc();
+    $stmtEmail->close();
+    
+    if ($userRow) {
+        $stmtWali = $conn->prepare("SELECT id, nama FROM wali WHERE email = ?");
+        $stmtWali->bind_param("s", $userRow['email']);
+        $stmtWali->execute();
+        $wali = $stmtWali->get_result()->fetch_assoc();
+        $stmtWali->close();
+    }
+}
+
+if (!$wali) {
+    sendResponse(['success' => false, 'message' => 'Profil wali tidak ditemukan. Hubungi admin.'], 404);
 }
 $waliId = (int)$wali['id'];
 
@@ -62,11 +84,12 @@ $stats = [
 ];
 
 if ($siswaAktif) {
-    // Rata-rata Nilai
-    $stmt = $conn->prepare("SELECT AVG(nilai) as rata FROM nilai WHERE siswa_id = ?");
+    // Rata-rata Nilai (kolom nilai_akhir)
+    $stmt = $conn->prepare("SELECT AVG(nilai_akhir) as rata FROM nilai WHERE siswa_id = ?");
     $stmt->bind_param("i", $selectedSiswaId);
     $stmt->execute();
-    $rata = $stmt->get_result()->fetch_assoc()['rata'];
+    $rataRow = $stmt->get_result()->fetch_assoc();
+    $rata = $rataRow ? $rataRow['rata'] : null;
     $stats['rata_nilai'] = $rata ? round($rata, 1) : 0;
     $stmt->close();
 
@@ -89,24 +112,36 @@ if ($siswaAktif) {
     $stmt->close();
 }
 
-// Pesan Belum Dibaca
-// Query untuk pesan baru schema
-$stmt = $conn->prepare("SELECT COUNT(id) as unread FROM messages WHERE id_recipient = ? AND dibaca = 0 AND is_deleted = 0");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$stats['pesan_baru'] = (int)$stmt->get_result()->fetch_assoc()['unread'];
-$stmt->close();
-
-// Notifikasi Terbaru
-$notifikasi = [];
-$stmt = $conn->prepare("SELECT id, judul, pesan, tipe, created_at, dibaca FROM notifikasi WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$resNotif = $stmt->get_result();
-while($row = $resNotif->fetch_assoc()){
-    $notifikasi[] = $row;
+// Pesan Belum Dibaca (dengan fallback aman)
+try {
+    $stmtMsg = $conn->prepare("SELECT COUNT(id) as unread FROM messages WHERE id_recipient = ? AND dibaca = 0 AND is_deleted = 0");
+    if ($stmtMsg) {
+        $stmtMsg->bind_param("i", $userId);
+        $stmtMsg->execute();
+        $msgRow = $stmtMsg->get_result()->fetch_assoc();
+        $stats['pesan_baru'] = (int)($msgRow['unread'] ?? 0);
+        $stmtMsg->close();
+    }
+} catch (Exception $e) {
+    $stats['pesan_baru'] = 0;
 }
-$stmt->close();
+
+// Notifikasi Terbaru (dengan fallback aman)
+$notifikasi = [];
+try {
+    $stmtNotif = $conn->prepare("SELECT id, judul, pesan, tipe, created_at, dibaca FROM notifikasi WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+    if ($stmtNotif) {
+        $stmtNotif->bind_param("i", $userId);
+        $stmtNotif->execute();
+        $resNotif = $stmtNotif->get_result();
+        while($row = $resNotif->fetch_assoc()){
+            $notifikasi[] = $row;
+        }
+        $stmtNotif->close();
+    }
+} catch (Exception $e) {
+    $notifikasi = [];
+}
 
 sendResponse([
     'success' => true,

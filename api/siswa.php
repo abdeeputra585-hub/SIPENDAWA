@@ -33,7 +33,8 @@ switch ($method) {
                 $ownCheck = $conn->prepare(
                     "SELECT r.id FROM relasi r
                      JOIN wali w ON r.wali_id = w.id
-                     WHERE r.siswa_id = ? AND w.user_id = ?"
+                     JOIN users u ON w.email = u.email
+                     WHERE r.siswa_id = ? AND u.id = ?"
                 );
                 $ownCheck->bind_param("ii", $id, $authUser['user_id']);
                 $ownCheck->execute();
@@ -87,7 +88,8 @@ switch ($method) {
                          FROM siswa s
                          JOIN relasi r ON s.id = r.siswa_id
                          JOIN wali w ON r.wali_id = w.id
-                         WHERE w.user_id = ?
+                         JOIN users u ON w.email = u.email
+                         WHERE u.id = ?
                          ORDER BY s.created_at DESC";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $authUser['user_id']);

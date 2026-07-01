@@ -71,7 +71,7 @@ async function adminPengumumanLoadList(page = 1) {
                         <td class="px-6 py-4 border-b border-slate-100 text-sm text-slate-500">
                             ${formatDateID(p.created_at)}
                         </td>
-                        <td class="px-6 py-4 border-b border-slate-100 text-right">
+                        <td class="px-6 py-4 border-b border-slate-100 text-right admin-only">
                             <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onclick="adminPengumumanEdit(${p.id})" class="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition shadow-sm" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
@@ -86,6 +86,10 @@ async function adminPengumumanLoadList(page = 1) {
                 });
             }
             adminPengumumanRenderPagination(data.total, data.limit, page);
+            
+            if (appState.currentRole !== 'admin') {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            }
         } else {
             showToast(response.message || response.error ||  'Terjadi kesalahan', 'error');
         }

@@ -43,6 +43,27 @@ if (currentPath.endsWith('/')) {
 }
 const API_BASE = currentPath + '/api';
 
+// Interceptor Fetch untuk menangani error HTML / Anti-bot InfinityFree
+const originalFetch = window.fetch;
+window.fetch = async function(resource, init) {
+    try {
+        const res = await originalFetch(resource, init);
+        if (typeof resource === 'string' && resource.includes(API_BASE)) {
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+                console.warn('[SIPENDAWA] Server returned HTML instead of JSON. Anti-bot atau server error.', resource);
+                return new Response(JSON.stringify({ success: false, message: 'Server sibuk (Bot Protection). Silakan coba lagi.' }), {
+                    status: 502,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+        }
+        return res;
+    } catch (err) {
+        throw err;
+    }
+};
+
 let appState = {
     currentRole: 'admin',
     currentTab: 'admin-dashboard',
@@ -115,8 +136,14 @@ const userCredentialsMock = {
 
 window.addEventListener('DOMContentLoaded', () => {
     showRoute('login');
-    // Inisialisasi Google Sign-In setelah library dimuat
     initGoogleSignIn();
+    const loader = document.getElementById('global-loader');
+    if (loader) {
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        }, 150);
+    }
 });
 
 // ======== GOOGLE SIGN-IN ========
@@ -536,6 +563,15 @@ function switchTab(tabId) {
             clearInterval(pesanPollingInterval);
             pesanPollingInterval = null;
         }
+    }
+    if (tabId === 'kepsek-laporan-keuangan') {
+        if (typeof showKepsekLaporanKeuanganPage === 'function') showKepsekLaporanKeuanganPage();
+    }
+    if (tabId === 'profil-umum') {
+        if (typeof loadProfilUmum === 'function') loadProfilUmum();
+    }
+    if (tabId === 'parent-profil') {
+        if (typeof loadParentProfil === 'function') loadParentProfil();
     }
 }
 
@@ -1480,6 +1516,11 @@ function performLogout() {
     appState.currentTab = 'admin-dashboard';
     appState.token = null;
     localStorage.removeItem('SIPENDAWA_token');
+    
+    if (typeof globalpesanPollingInterval !== 'undefined' && globalpesanPollingInterval) {
+        clearInterval(globalpesanPollingInterval);
+        globalpesanPollingInterval = null;
+    }
     
     const emailEl = document.getElementById('login-email');
     const passEl = document.getElementById('login-password');
@@ -3776,6 +3817,52 @@ async function simpanKehadiranMasal() {
     }
 }
 
+function openModalAbsensi() {
+    const form = document.getElementById('form-absensi');
+    if (form) form.reset();
+    const idEl = document.getElementById('absensi-id');
+    if (idEl) idEl.value = '';
+    const tglEl = document.getElementById('absensi-tanggal');
+    if (tglEl) tglEl.value = new Date().toISOString().split('T')[0];
+    const modal = document.getElementById('modal-absensi');
+    if (modal) modal.classList.remove('hidden');
+}
+
+async function simpanAbsensi(e) {
+    e.preventDefault();
+    const id = document.getElementById('absensi-id').value;
+    const siswa_id = resolveSiswaId('absensi-siswa-nama', 'datalist-siswa-absensi');
+    const tanggal = document.getElementById('absensi-tanggal').value;
+    const status = document.getElementById('absensi-status').value;
+    const keterangan = document.getElementById('absensi-keterangan').value;
+
+    if (!siswa_id || !tanggal) {
+        showToast('❌ Siswa dan Tanggal wajib diisi', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/kehadiran.php`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${appState.token}`
+            },
+            body: JSON.stringify({ id: id || undefined, siswa_id, tanggal, status, keterangan })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('✅ ' + data.message);
+            document.getElementById('modal-absensi').classList.add('hidden');
+            if (typeof loadGuruKehadiran === 'function') loadGuruKehadiran();
+        } else {
+            showToast('❌ ' + data.message, 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('❌ Gagal menyimpan absensi', 'error');
+    }
+}
 
 // ======== MODUL CATATAN PERILAKU ========
 async function loadGuruCatatan() {
@@ -4498,3 +4585,94 @@ async function lihatSiswaKelas(namaKelas) {
         container.innerHTML = '<div class="text-center text-red-500 text-sm py-8">Terjadi kesalahan saat memuat data</div>';
     }
 }
+
+// ======== HUBUNGKAN WALI ========
+async function openHubungkanWaliModal(siswaId, siswaNama) {
+    document.getElementById('hubungkan-siswa-nama').textContent = siswaNama;
+    document.getElementById('hubungkan-siswa-id').value = siswaId;
+    document.getElementById('modal-hubungkan-wali').classList.remove('hidden');
+    const select = document.getElementById('hubungkan-wali-select');
+    select.innerHTML = '<option value="">Memuat wali...</option>';
+    try {
+        const res = await fetch(`${API_BASE}/wali.php`, { headers: { 'Authorization': `Bearer ${appState.token}` } });
+        const data = await res.json();
+        if (data.success) {
+            select.innerHTML = '<option value="">-- Pilih Wali --</option>';
+            data.data.forEach(w => {
+                select.innerHTML += `<option value="${w.id}">${w.nama} (${w.email})</option>`;
+            });
+        }
+    } catch (e) {
+        select.innerHTML = '<option value="">Gagal memuat</option>';
+    }
+}
+
+function closeHubungkanWaliModal() {
+    document.getElementById('modal-hubungkan-wali').classList.add('hidden');
+    document.getElementById('hubungkan-form').reset();
+}
+
+async function submitHubungkanWali(event) {
+    if(event) event.preventDefault();
+    const siswa_id = document.getElementById('hubungkan-siswa-id').value;
+    const wali_id = document.getElementById('hubungkan-wali-select').value;
+    const tipe = document.querySelector('input[name="hubungkan-tipe"]:checked').value;
+    if (!wali_id) return showToast('Pilih wali terlebih dahulu', 'error');
+    
+    const btn = document.getElementById('hubungkan-submit-btn');
+    const loading = document.getElementById('hubungkan-loading');
+    btn.disabled = true;
+    loading.classList.remove('hidden');
+    
+    try {
+        const res = await fetch(`${API_BASE}/relasi.php`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${appState.token}`
+            },
+            body: JSON.stringify({ siswa_id, wali_id, tipe })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('✅ ' + data.message);
+            closeHubungkanWaliModal();
+            if (typeof loadSiswaData === 'function') loadSiswaData();
+        } else {
+            showToast('❌ ' + data.message, 'error');
+        }
+    } catch (e) {
+        showToast('❌ Gagal terhubung ke server', 'error');
+    } finally {
+        btn.disabled = false;
+        loading.classList.add('hidden');
+    }
+}
+// ======== PROFIL & UMUM ========
+function handleProfilSamping() {
+    if (!appState || !appState.currentUser) return;
+    const role = appState.currentUser.role;
+    if (role === 'admin' || role === 'kepala_sekolah') {
+        switchTab('profil-umum');
+        if (typeof loadProfilUmum === 'function') loadProfilUmum();
+    } else if (role === 'guru') {
+        switchTab('guru-profil');
+    } else if (role === 'parent') {
+        switchTab('parent-profil');
+        if (typeof loadParentProfil === 'function') loadParentProfil();
+    }
+}
+
+function syncDapodik() {
+    const btn = event.currentTarget;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Sinkronisasi...';
+    btn.disabled = true;
+    setTimeout(() => {
+        showToast('✅ Data Dapodik berhasil disinkronisasi (Simulasi)');
+        btn.innerHTML = oldHtml;
+        btn.disabled = false;
+    }, 2000);
+}
+
+// (Profile and upload functions are defined in js/profil_all.js)

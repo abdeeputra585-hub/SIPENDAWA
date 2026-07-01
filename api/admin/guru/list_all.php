@@ -17,7 +17,7 @@ if (!in_array($authUser['role'], ['admin', 'kepala_sekolah'])) {
 
 // Fetch active teachers
 $query = "
-    SELECT gp.id as guru_profile_id, u.nama, gp.nip 
+    SELECT gp.id as guru_profile_id, gp.id as id, u.nama, gp.nip
     FROM guru_profiles gp 
     JOIN users u ON gp.user_id = u.id 
     WHERE gp.is_active = 1 

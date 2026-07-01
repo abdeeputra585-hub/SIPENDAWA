@@ -131,7 +131,8 @@ elseif ($method === 'POST' || $method === 'PUT') {
         sendResponse(['success' => true, 'message' => $msg]);
     } catch (Exception $e) {
         $conn->rollback();
-        if ($conn->errno === 1062) {
+        $errorCode = $e->getCode();
+        if ($errorCode == 1062 || $conn->errno === 1062) {
             sendResponse(['success' => false, 'message' => 'Nama kelas tersebut sudah digunakan'], 400);
         }
         sendResponse(['success' => false, 'message' => 'Gagal menyimpan kelas: ' . $e->getMessage()], 500);

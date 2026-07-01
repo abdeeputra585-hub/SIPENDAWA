@@ -24,7 +24,8 @@ if ($method === 'GET') {
             $stmt = $conn->prepare("
                 SELECT r.id FROM relasi r 
                 JOIN wali w ON r.wali_id = w.id 
-                WHERE r.siswa_id = ? AND w.user_id = ? AND r.status = 'Terverifikasi'
+                JOIN users u ON w.email = u.email
+                WHERE r.siswa_id = ? AND u.id = ? AND r.status = 'Terverifikasi'
             ");
             $stmt->bind_param("ii", $siswaId, $user['user_id']);
             $stmt->execute();

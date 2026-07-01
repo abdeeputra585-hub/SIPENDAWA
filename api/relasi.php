@@ -27,7 +27,8 @@ switch ($method) {
                     FROM relasi r
                     JOIN siswa s ON r.siswa_id = s.id
                     JOIN wali w ON r.wali_id = w.id
-                    WHERE w.user_id = ?
+                    JOIN users u ON w.email = u.email
+                    WHERE u.id = ?
                     ORDER BY r.created_at DESC";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("i", $authUser['user_id']);
@@ -114,7 +115,7 @@ switch ($method) {
         }
         $dupStmt->close();
 
-        $sql  = "INSERT INTO relasi (siswa_id, wali_id, tipe, status) VALUES (?, ?, ?, 'Pending')";
+        $sql  = "INSERT INTO relasi (siswa_id, wali_id, tipe, status) VALUES (?, ?, ?, 'Terverifikasi')";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("iis", $siswaId, $waliId, $tipe);
 

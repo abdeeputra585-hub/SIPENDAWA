@@ -122,6 +122,12 @@ function verifyToken($token) {
     if (!hash_equals($expectedSig, $signature)) return null;
 
     $payload = json_decode(base64UrlDecode($body), true);
+    
+    // Backward compatibility for older tokens that used 'id' instead of 'user_id'
+    if ($payload && isset($payload['id']) && !isset($payload['user_id'])) {
+        $payload['user_id'] = $payload['id'];
+    }
+
     if (!$payload || !isset($payload['user_id']) || !isset($payload['exp'])) return null;
 
     // Cek expiry
@@ -146,6 +152,15 @@ function requireAuth($allowedRoles = []) {
     if (empty($authHeader) && function_exists('getallheaders')) {
         $h = getallheaders();
         $authHeader = $h['Authorization'] ?? $h['authorization'] ?? '';
+    }
+    
+    // Fallback: token dari query string (InfinityFree sometimes strips Authorization header)
+    if (empty($authHeader) && !empty($_GET['token'])) {
+        $authHeader = 'Bearer ' . $_GET['token'];
+    }
+    // Fallback: token dari body jika POST JSON
+    if (empty($authHeader) && !empty($_POST['_token'])) {
+        $authHeader = 'Bearer ' . $_POST['_token'];
     }
 
     if (empty($authHeader)) {
@@ -185,6 +200,10 @@ function optionalAuth() {
     if (empty($authHeader) && function_exists('getallheaders')) {
         $h = getallheaders();
         $authHeader = $h['Authorization'] ?? $h['authorization'] ?? '';
+    }
+    // Fallback: token dari query string
+    if (empty($authHeader) && !empty($_GET['token'])) {
+        $authHeader = 'Bearer ' . $_GET['token'];
     }
     if (empty($authHeader)) return null;
     preg_match('/Bearer\s+(\S+)/', $authHeader, $matches);

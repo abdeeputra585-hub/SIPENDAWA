@@ -16,17 +16,17 @@ if (empty($input['email']) || empty($input['password'])) {
     sendResponse(['success' => false, 'message' => 'Email dan password wajib diisi'], 400);
 }
 
-$email    = trim($input['email']);
+$login_id = trim($input['email']);
 $password = $input['password'];
 
-$sql  = "SELECT id, email, password, role, nama, avatar FROM users WHERE email = ?";
+$sql  = "SELECT id, email, username, password, role, nama, avatar FROM users WHERE email = ? OR username = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $email);
+$stmt->bind_param("ss", $login_id, $login_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    sendResponse(['success' => false, 'message' => 'Email tidak ditemukan'], 401);
+    sendResponse(['success' => false, 'message' => 'Akun tidak ditemukan'], 401);
 }
 
 $user = $result->fetch_assoc();
